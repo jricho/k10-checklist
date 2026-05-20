@@ -254,7 +254,7 @@ export default function ChecklistPage() {
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Image src="/veeam-kasten-logo.png" alt="Veeam Kasten" width={160} height={40} className="h-10 w-auto" />
+            <Image src="/veeam_logo.svg" alt="Veeam" width={160} height={40} className="h-10 w-auto" unoptimized priority />
             <div className="hidden sm:block h-8 w-px bg-gray-300" />
             <span className="hidden sm:block text-sm font-medium text-gray-500 tracking-wide uppercase">Production Readiness Checklist</span>
           </div>
