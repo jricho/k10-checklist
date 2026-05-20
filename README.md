@@ -109,3 +109,30 @@ kustomize edit set image \
   docker.io/jricho/k10-checklist=docker.io/jricho/k10-checklist:v0.1.0
 kubectl apply -k .
 ```
+
+## Attach a cluster architecture diagram
+
+The checklist has an optional **Cluster Architecture Diagram** card that
+accepts a PNG/JPEG upload and embeds it on its own page in the exported PDF.
+Generate the diagram with [philippemerle/KubeDiagrams](https://github.com/philippemerle/KubeDiagrams) —
+a Python tool that turns Kubernetes manifests into architecture diagrams
+(via the mingrammer `diagrams` library + Graphviz).
+
+Typical flow — refer to the project's README for the current install steps
+and CLI flags:
+
+```bash
+# 1. Install KubeDiagrams (Python 3 and Graphviz are prerequisites).
+pip install KubeDiagrams
+
+# 2. Render a diagram from your live cluster's resources:
+kubectl get all,pvc,ingress -A -o yaml | kube-diagrams - -o k10-arch.png
+
+# Or from a saved manifest bundle:
+kube-diagrams ./manifests.yaml -o k10-arch.png
+```
+
+In the deployed checklist, scroll to **Cluster Architecture Diagram**, click
+**Click to upload diagram**, and select `k10-arch.png`. The image stays in
+browser state — nothing is uploaded to a backend — and is embedded on a
+dedicated page when you **Export PDF**.

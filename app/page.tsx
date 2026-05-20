@@ -29,6 +29,12 @@ const sections = [
         cmd: "kubectl get deployments --all-namespaces",
         oc: "oc get deployments --all-namespaces"
       },
+      {
+        label: "Cluster architecture diagram captured",
+        desc: "Generate a current-state cluster diagram with philippemerle/KubeDiagrams and attach it to the checklist for sign-off documentation.",
+        cmd: "kube-diagrams $(kubectl get all,pvc,ingress -A -o yaml) -o k10-arch.png",
+        oc: "kube-diagrams $(oc get all,pvc,route -A -o yaml) -o k10-arch.png"
+      },
     ]
   },
   {
@@ -152,6 +158,32 @@ export default function ChecklistPage() {
   const [rtoRpoNotes, setRtoRpoNotes] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [stakeholderSignoff, setStakeholderSignoff] = useState(false);
+  const [diagram, setDiagram] = useState<string>("");
+  const [diagramName, setDiagramName] = useState<string>("");
+  const [diagramDims, setDiagramDims] = useState<{ w: number; h: number } | null>(null);
+
+  const handleDiagramUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const img = new window.Image();
+      img.onload = () => {
+        setDiagram(dataUrl);
+        setDiagramName(file.name);
+        setDiagramDims({ w: img.naturalWidth, h: img.naturalHeight });
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDiagramClear = () => {
+    setDiagram("");
+    setDiagramName("");
+    setDiagramDims(null);
+  };
 
   const total = sections.reduce((sum, s) => sum + s.items.length, 0);
   const completed = checked.flat().filter(Boolean).length;
@@ -229,6 +261,30 @@ export default function ChecklistPage() {
       });
       y += 4;
     });
+
+    if (diagram && diagramDims) {
+      doc.addPage();
+      doc.setFillColor(...green);
+      doc.rect(0, 0, 210, 22, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Cluster Architecture Diagram", 10, 14);
+
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Source: ${diagramName} — generated via philippemerle/KubeDiagrams`, 10, 30);
+
+      const maxW = 190;
+      const maxH = 240;
+      const scale = Math.min(maxW / diagramDims.w, maxH / diagramDims.h);
+      const drawW = diagramDims.w * scale;
+      const drawH = diagramDims.h * scale;
+      const x = (210 - drawW) / 2;
+      const format = diagram.startsWith("data:image/png") ? "PNG" : "JPEG";
+      doc.addImage(diagram, format, x, 36, drawW, drawH);
+    }
 
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
@@ -395,6 +451,68 @@ curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Cluster architecture diagram */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="flex items-start justify-between mb-1 gap-4">
+            <h2 className="text-base font-semibold text-gray-900">Cluster Architecture Diagram</h2>
+            <a
+              href="https://github.com/philippemerle/KubeDiagrams"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-[#219150] hover:underline flex items-center gap-1 shrink-0"
+            >
+              philippemerle/KubeDiagrams
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Optional. Generate a diagram of your cluster with KubeDiagrams, then upload the PNG/JPEG here.
+            The image will be embedded on its own page in the exported PDF.
+          </p>
+          {!diagram ? (
+            <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg px-6 py-10 cursor-pointer hover:border-[#219150] hover:bg-gray-50/60 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.9A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">Click to upload diagram</span>
+              <span className="text-xs text-gray-400 mt-1">PNG or JPEG, up to ~5 MB</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                className="hidden"
+                onChange={handleDiagramUpload}
+              />
+            </label>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#219150] shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm text-gray-700 truncate">{diagramName}</span>
+                  {diagramDims && (
+                    <span className="text-xs text-gray-400 shrink-0">({diagramDims.w}×{diagramDims.h})</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDiagramClear}
+                  className="text-xs font-medium text-red-600 hover:text-red-800 hover:underline shrink-0 ml-3"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={diagram} alt="Cluster architecture diagram preview" className="max-h-80 w-auto object-contain" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Install checklist summary */}
