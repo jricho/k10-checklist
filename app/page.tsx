@@ -158,6 +158,7 @@ export default function ChecklistPage() {
   const [rtoRpoNotes, setRtoRpoNotes] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [stakeholderSignoff, setStakeholderSignoff] = useState(false);
+  const [expanded, setExpanded] = useState<boolean[]>(() => sections.map(() => true));
   const [diagram, setDiagram] = useState<string>("");
   const [diagramName, setDiagramName] = useState<string>("");
   const [diagramDims, setDiagramDims] = useState<{ w: number; h: number } | null>(null);
@@ -184,6 +185,13 @@ export default function ChecklistPage() {
     setDiagramName("");
     setDiagramDims(null);
   };
+
+  const handleToggleSection = (si: number) => {
+    setExpanded(prev => prev.map((v, i) => (i === si ? !v : v)));
+  };
+  const handleExpandAll = () => setExpanded(sections.map(() => true));
+  const handleCollapseAll = () => setExpanded(sections.map(() => false));
+  const allExpanded = expanded.every(Boolean);
 
   const total = sections.reduce((sum, s) => sum + s.items.length, 0);
   const completed = checked.flat().filter(Boolean).length;
@@ -560,12 +568,47 @@ curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/
         </div>
 
         {/* Checklist sections */}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-gray-900">Readiness Sections</h2>
+          <button
+            type="button"
+            onClick={allExpanded ? handleCollapseAll : handleExpandAll}
+            className="text-xs font-medium text-[#219150] hover:underline"
+          >
+            {allExpanded ? "Collapse all" : "Expand all"}
+          </button>
+        </div>
         <div className="space-y-6">
-          {sections.map((section, si) => (
+          {sections.map((section, si) => {
+            const sectionDone = checked[si].filter(Boolean).length;
+            const sectionTotal = section.items.length;
+            const isOpen = expanded[si];
+            return (
             <Card key={section.title} className="border border-gray-200 bg-white shadow-sm overflow-hidden">
-              <div className="bg-[#219150] px-6 py-3">
+              <button
+                type="button"
+                onClick={() => handleToggleSection(si)}
+                aria-expanded={isOpen}
+                className="w-full bg-[#219150] hover:bg-[#1c7d44] transition-colors px-6 py-3 flex items-center justify-between gap-4 text-left"
+              >
                 <h2 className="text-sm font-bold text-white uppercase tracking-wider">{section.title}</h2>
-              </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs font-semibold text-white/90 bg-white/15 rounded-full px-2 py-0.5">
+                    {sectionDone}/{sectionTotal}
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 text-white transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+              {isOpen && (
               <CardContent className="p-0">
                 <ul className="divide-y divide-gray-100">
                   {section.items.map((item, ii) => (
@@ -600,8 +643,10 @@ curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/
                   ))}
                 </ul>
               </CardContent>
+              )}
             </Card>
-          ))}
+            );
+          })}
         </div>
       </main>
 
