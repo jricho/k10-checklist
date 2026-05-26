@@ -118,19 +118,32 @@ Generate the diagram with [philippemerle/KubeDiagrams](https://github.com/philip
 a Python tool that turns Kubernetes manifests into architecture diagrams
 (via the mingrammer `diagrams` library + Graphviz).
 
-Typical flow — refer to the project's README for the current install steps
-and CLI flags:
+Prerequisites: **Python 3.9+** and **Graphviz** (the `dot` binary must be on
+`$PATH`). On macOS: `brew install graphviz pipx`. On Debian/Ubuntu:
+`sudo apt-get install graphviz pipx`.
+
+Modern Python installs are PEP 668–protected and reject system-wide
+`pip install`, so use **pipx** to drop the `kube-diagrams` CLI into an
+isolated environment without touching the system interpreter:
 
 ```bash
-# 1. Install KubeDiagrams (Python 3 and Graphviz are prerequisites).
-pip install KubeDiagrams
+# 1. Install KubeDiagrams as a managed CLI tool:
+pipx ensurepath              # adds ~/.local/bin to PATH (restart your shell after)
+pipx install KubeDiagrams
 
-# 2. Render a diagram from your live cluster's resources:
-kubectl get all,pvc,ingress -A -o yaml | kube-diagrams - -o k10-arch.png
+# 2. Render a diagram from your live cluster (stdin, with `-` as the source):
+kubectl get all --all-namespaces -o yaml | kube-diagrams -o k10-arch.png -
 
-# Or from a saved manifest bundle:
-kube-diagrams ./manifests.yaml -o k10-arch.png
+# Or from one or more manifest files (flag before filename):
+kube-diagrams -o k10-arch.png ./manifests.yaml
 ```
+
+If you'd rather not use pipx, a project-local virtualenv works equally well:
+`python3 -m venv .venv && source .venv/bin/activate && pip install KubeDiagrams`.
+
+Refer to the [project README](https://github.com/philippemerle/KubeDiagrams)
+for additional flags (`-n <namespace>`, `-f <format>`, `--without-namespace`,
+custom config files, etc.).
 
 In the deployed checklist, scroll to **Cluster Architecture Diagram**, click
 **Click to upload diagram**, and select `k10-arch.png`. The image stays in

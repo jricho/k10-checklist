@@ -32,8 +32,8 @@ const sections = [
       {
         label: "Cluster architecture diagram captured",
         desc: "Generate a current-state cluster diagram with philippemerle/KubeDiagrams and attach it to the checklist for sign-off documentation.",
-        cmd: "kube-diagrams $(kubectl get all,pvc,ingress -A -o yaml) -o k10-arch.png",
-        oc: "kube-diagrams $(oc get all,pvc,route -A -o yaml) -o k10-arch.png"
+        cmd: "kubectl get all --all-namespaces -o yaml | kube-diagrams -o k10-arch.png -",
+        oc: "oc get all --all-namespaces -o yaml | kube-diagrams -o k10-arch.png -"
       },
     ]
   },
@@ -162,6 +162,8 @@ export default function ChecklistPage() {
   const [diagram, setDiagram] = useState<string>("");
   const [diagramName, setDiagramName] = useState<string>("");
   const [diagramDims, setDiagramDims] = useState<{ w: number; h: number } | null>(null);
+  const [outputs, setOutputs] = useState({ primer: "", k8s: "", oc: "" });
+  const [copied, setCopied] = useState<string | null>(null);
 
   const handleDiagramUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -185,6 +187,33 @@ export default function ChecklistPage() {
     setDiagramName("");
     setDiagramDims(null);
   };
+
+  type OutputKey = "primer" | "k8s" | "oc";
+
+  const handleCopy = async (key: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      setTimeout(() => setCopied(prev => (prev === key ? null : prev)), 1500);
+    } catch {
+      /* clipboard API unavailable — silently no-op */
+    }
+  };
+
+  const handleOutputChange = (key: OutputKey, value: string) => {
+    setOutputs(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleOutputUpload = (key: OutputKey) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => handleOutputChange(key, reader.result as string);
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleOutputClear = (key: OutputKey) => () => handleOutputChange(key, "");
 
   const handleToggleSection = (si: number) => {
     setExpanded(prev => prev.map((v, i) => (i === si ? !v : v)));
@@ -293,6 +322,38 @@ export default function ChecklistPage() {
       const format = diagram.startsWith("data:image/png") ? "PNG" : "JPEG";
       doc.addImage(diagram, format, x, 36, drawW, drawH);
     }
+
+    const captures: Array<{ title: string; content: string }> = [];
+    if (outputs.primer) captures.push({ title: "K10 Primer", content: outputs.primer });
+    if (outputs.k8s) captures.push({ title: "Kubernetes Cluster Info", content: outputs.k8s });
+    if (outputs.oc) captures.push({ title: "OpenShift Cluster Info", content: outputs.oc });
+
+    captures.forEach(({ title, content }) => {
+      doc.addPage();
+      doc.setFillColor(...green);
+      doc.rect(0, 0, 210, 22, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Diagnostic Output — ${title}`, 10, 14);
+
+      doc.setTextColor(50, 50, 50);
+      doc.setFont("courier", "normal");
+      doc.setFontSize(8);
+      const lines = doc.splitTextToSize(content, 190) as string[];
+      const lineHeight = 3.5;
+      const topMargin = 30;
+      const bottomLimit = 282;
+      let y = topMargin;
+      lines.forEach(line => {
+        if (y > bottomLimit) {
+          doc.addPage();
+          y = topMargin;
+        }
+        doc.text(line, 10, y);
+        y += lineHeight;
+      });
+    });
 
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
@@ -428,38 +489,107 @@ export default function ChecklistPage() {
         </div>
 
         {/* Primer & scripts */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Diagnostic Tools</h2>
-          <p className="text-sm text-gray-500 mb-4">Run these commands to gather environment data for readiness assessment or support purposes.</p>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">K10 Primer</span>
-              </div>
-              <p className="text-xs text-gray-500 mb-2">Collects K10 environment and cluster information for readiness verification.</p>
-              <pre className="bg-gray-950 text-emerald-300 rounded-lg px-4 py-3 text-xs font-mono overflow-x-auto select-all">
-curl -s https://docs.kasten.io/downloads/8.5.5/tools/k10_primer.sh | bash</pre>
-            </div>
-            <div className="border-t border-gray-100 pt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Cluster Info Scripts</span>
-              </div>
-              <p className="text-xs text-gray-500 mb-3">Gathers detailed cluster information for Kubernetes and OpenShift environments.</p>
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-block bg-blue-600 text-white text-xs font-semibold rounded px-2 py-1 min-w-[80px] text-center">Kubernetes</span>
-                  <pre className="bg-gray-950 text-blue-300 rounded-lg px-4 py-2 text-xs font-mono overflow-x-auto select-all flex-1">
-curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/k8s_cluster_info.sh | bash</pre>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-block bg-red-700 text-white text-xs font-semibold rounded px-2 py-1 min-w-[80px] text-center">OpenShift</span>
-                  <pre className="bg-gray-950 text-red-300 rounded-lg px-4 py-2 text-xs font-mono overflow-x-auto select-all flex-1">
-curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/oc_cluster_info.sh | bash</pre>
+        {(() => {
+          const PRIMER_CMD = "curl -s https://docs.kasten.io/downloads/8.5.5/tools/k10_primer.sh | bash";
+          const K8S_CMD = "curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/k8s_cluster_info.sh | bash";
+          const OC_CMD = "curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/oc_cluster_info.sh | bash";
+
+          const renderCommandRow = (
+            key: OutputKey,
+            cmd: string,
+            preTextColor: string,
+            badge: React.ReactNode,
+          ) => (
+            <div className="space-y-2">
+              <div className="flex items-stretch gap-2">
+                {badge && <div className="shrink-0 self-center">{badge}</div>}
+                <div className="relative flex-1 min-w-0">
+                  <pre className={`bg-gray-950 ${preTextColor} rounded-lg pl-4 pr-20 py-2.5 text-xs font-mono overflow-x-auto select-all whitespace-pre`}>{cmd}</pre>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(`cmd-${key}`, cmd)}
+                    className="absolute top-1.5 right-1.5 text-[10px] font-semibold uppercase tracking-wide bg-white/10 hover:bg-white/20 text-white rounded px-2 py-1 transition-colors"
+                  >
+                    {copied === `cmd-${key}` ? "Copied!" : "Copy"}
+                  </button>
                 </div>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-gray-500">
+                  Captured output — paste below or upload a file. Included in the exported PDF.
+                </span>
+                <div className="flex items-center gap-3">
+                  <label className="text-xs font-medium text-[#219150] hover:underline cursor-pointer">
+                    Load from file
+                    <input
+                      type="file"
+                      accept=".txt,.log,.json,.yaml,.yml,text/*"
+                      className="hidden"
+                      onChange={handleOutputUpload(key)}
+                    />
+                  </label>
+                  {outputs[key] && (
+                    <button
+                      type="button"
+                      onClick={handleOutputClear(key)}
+                      className="text-xs font-medium text-red-600 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+              <textarea
+                value={outputs[key]}
+                onChange={e => handleOutputChange(key, e.target.value)}
+                placeholder={`Paste the script output here (tip: \`${cmd.split("|")[0].trim().replace(/^curl[^ ]* /, "")} | tee ${key}.txt\` then upload).`}
+                spellCheck={false}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[11px] font-mono text-gray-800 leading-snug min-h-[88px] resize-y focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent bg-white"
+              />
+              {outputs[key] && (
+                <div className="text-[10px] text-gray-400">
+                  {outputs[key].length.toLocaleString()} chars · {outputs[key].split("\n").length.toLocaleString()} lines captured
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          );
+
+          return (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Diagnostic Tools</h2>
+              <p className="text-sm text-gray-500 mb-4">Run these in your shell against the target cluster, then paste or upload the output below — the captured text is appended to the exported PDF for support / handover.</p>
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">K10 Primer</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">Collects K10 environment and cluster information for readiness verification.</p>
+                  {renderCommandRow("primer", PRIMER_CMD, "text-emerald-300", null)}
+                </div>
+                <div className="border-t border-gray-100 pt-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Cluster Info Scripts</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">Gathers detailed cluster information for Kubernetes and OpenShift environments.</p>
+                  <div className="space-y-5">
+                    {renderCommandRow(
+                      "k8s",
+                      K8S_CMD,
+                      "text-blue-300",
+                      <span className="inline-block bg-blue-600 text-white text-xs font-semibold rounded px-2 py-1 min-w-[80px] text-center">Kubernetes</span>,
+                    )}
+                    {renderCommandRow(
+                      "oc",
+                      OC_CMD,
+                      "text-red-300",
+                      <span className="inline-block bg-red-700 text-white text-xs font-semibold rounded px-2 py-1 min-w-[80px] text-center">OpenShift</span>,
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Cluster architecture diagram */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
