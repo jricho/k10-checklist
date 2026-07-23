@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "../components/ui/card";
 import { Checkbox } from "../components/ui/checkbox";
@@ -164,6 +164,22 @@ export default function ChecklistPage() {
   const [diagramDims, setDiagramDims] = useState<{ w: number; h: number } | null>(null);
   const [outputs, setOutputs] = useState({ primer: "", k8s: "", oc: "" });
   const [copied, setCopied] = useState<string | null>(null);
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/k10-version")
+      .then(res => res.json())
+      .then((data: { version?: string | null }) => {
+        if (active && data.version) setLatestVersion(data.version);
+      })
+      .catch(() => {
+        /* leave version unknown — the command still works */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleDiagramUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -399,7 +415,7 @@ export default function ChecklistPage() {
 
         {/* Page intro */}
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">K10 Production Readiness Checklist</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Kasten Production Readiness Checklist</h1>
           <p className="text-gray-500 text-base max-w-3xl">
             Use this checklist to validate that your environment meets all requirements for a production-grade Veeam Kasten K10 deployment. Complete each item, capture your RTO/RPO requirements, and export a signed-off PDF for your records.
           </p>
@@ -407,10 +423,10 @@ export default function ChecklistPage() {
 
         {/* Engagement details */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-          <h2 className="text-base font-semibold text-gray-700 mb-4 uppercase tracking-wide">Engagement Details</h2>
+          <h2 className="text-base font-semibold text-gray-700 mb-4 uppercase tracking-wide">Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
               <input
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent bg-white"
                 value={customer}
@@ -490,7 +506,7 @@ export default function ChecklistPage() {
 
         {/* Primer & scripts */}
         {(() => {
-          const PRIMER_CMD = "curl -s https://docs.kasten.io/downloads/8.5.5/tools/k10_primer.sh | bash";
+          const PRIMER_CMD = "curl -s https://docs.kasten.io/downloads/latest/tools/k10_primer.sh | bash";
           const K8S_CMD = "curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/k8s_cluster_info.sh | bash";
           const OC_CMD = "curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/oc_cluster_info.sh | bash";
 
@@ -562,8 +578,17 @@ export default function ChecklistPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">K10 Primer</span>
+                    {latestVersion && (
+                      <span
+                        title="Latest Veeam Kasten K10 release (from charts.kasten.io)"
+                        className="inline-flex items-center gap-1 bg-[#219150]/10 text-[#176b3a] text-[10px] font-semibold rounded-full px-2 py-0.5"
+                      >
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#219150]" />
+                        Latest v{latestVersion}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500 mb-2">Collects K10 environment and cluster information for readiness verification.</p>
+                  <p className="text-xs text-gray-500 mb-2">Collects K10 environment and cluster information for readiness verification. The <code className="font-mono text-[11px] bg-gray-100 rounded px-1 py-0.5">downloads/latest</code> path always fetches the current release.</p>
                   {renderCommandRow("primer", PRIMER_CMD, "text-emerald-300", null)}
                 </div>
                 <div className="border-t border-gray-100 pt-5">
