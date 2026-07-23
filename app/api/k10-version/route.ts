@@ -1,10 +1,16 @@
 // Returns the latest Veeam Kasten K10 release version by reading the public
 // Helm chart index. Fetched server-side to avoid browser CORS restrictions.
-// Cached and revalidated hourly (route segment config below).
+//
+// `force-dynamic` keeps this off the build-time prerender path: the upstream
+// fetch happens at request time, never during `next build` (which would make
+// the CI image build depend on — and potentially hang on — network egress).
+// The fetch itself is still cached for an hour via the data cache, and a hard
+// timeout ensures a slow/unreachable upstream can never block a request.
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 const INDEX_URL = "https://charts.kasten.io/index.yaml";
+const TIMEOUT_MS = 5000;
 
 // Compare two "x.y.z" strings; returns > 0 when a is newer than b.
 function compareSemver(a: string, b: string): number {
@@ -18,7 +24,10 @@ function compareSemver(a: string, b: string): number {
 
 export async function GET() {
   try {
-    const res = await fetch(INDEX_URL, { next: { revalidate: 3600 } });
+    const res = await fetch(INDEX_URL, {
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
     if (!res.ok) {
       return Response.json({ version: null, error: `upstream ${res.status}` }, { status: 200 });
     }
