@@ -162,7 +162,7 @@ export default function ChecklistPage() {
   const [diagram, setDiagram] = useState<string>("");
   const [diagramName, setDiagramName] = useState<string>("");
   const [diagramDims, setDiagramDims] = useState<{ w: number; h: number } | null>(null);
-  const [outputs, setOutputs] = useState({ primer: "", k8s: "", oc: "" });
+  const [outputs, setOutputs] = useState({ primer: "", k8s: "", oc: "", popeye: "" });
   const [copied, setCopied] = useState<string | null>(null);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
 
@@ -204,7 +204,7 @@ export default function ChecklistPage() {
     setDiagramDims(null);
   };
 
-  type OutputKey = "primer" | "k8s" | "oc";
+  type OutputKey = "primer" | "k8s" | "oc" | "popeye";
 
   const handleCopy = async (key: string, text: string) => {
     try {
@@ -343,6 +343,7 @@ export default function ChecklistPage() {
     if (outputs.primer) captures.push({ title: "K10 Primer", content: outputs.primer });
     if (outputs.k8s) captures.push({ title: "Kubernetes Cluster Info", content: outputs.k8s });
     if (outputs.oc) captures.push({ title: "OpenShift Cluster Info", content: outputs.oc });
+    if (outputs.popeye) captures.push({ title: "Popeye Sanitizer (kasten-io)", content: outputs.popeye });
 
     captures.forEach(({ title, content }) => {
       doc.addPage();
@@ -509,6 +510,11 @@ export default function ChecklistPage() {
           const PRIMER_CMD = "curl -s https://docs.kasten.io/downloads/latest/tools/k10_primer.sh | bash";
           const K8S_CMD = "curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/k8s_cluster_info.sh | bash";
           const OC_CMD = "curl -sSL https://raw.githubusercontent.com/jricho/kasten-assessment/refs/heads/main/oc_cluster_info.sh | bash";
+          // Scoped to the kasten-io namespace and limited (via -s) to the
+          // namespaced resource types K10 uses. Popeye cannot allow-list only
+          // K10-related cluster-scoped resources, so cluster-scoped linters are
+          // intentionally omitted here to honour the kasten-io scope.
+          const POPEYE_CMD = "popeye -n kasten-io -s po,deploy,sts,ds,svc,sa,sec,cm,pvc,ing,np,pdb,hpa,cronjobs,jobs,ro,rb -o jurassic";
 
           const renderCommandRow = (
             key: OutputKey,
@@ -610,6 +616,32 @@ export default function ChecklistPage() {
                       <span className="inline-block bg-red-700 text-white text-xs font-semibold rounded px-2 py-1 min-w-[80px] text-center">OpenShift</span>,
                     )}
                   </div>
+                </div>
+                <div className="border-t border-gray-100 pt-5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Cluster Sanitizer (Popeye)</span>
+                    <a
+                      href="https://popeyecli.io"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-[#219150] hover:underline flex items-center gap-1 shrink-0"
+                    >
+                      popeyecli.io
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Scans the <code className="font-mono text-[11px] bg-gray-100 rounded px-1 py-0.5">kasten-io</code> namespace for misconfigurations against your current kubeconfig context.
+                    Requires Popeye (<code className="font-mono text-[11px] bg-gray-100 rounded px-1 py-0.5">brew install derailed/popeye/popeye</code>). Scoped to K10&apos;s namespaced resources — cluster-scoped resources are not filterable to K10 alone, so they are omitted.
+                  </p>
+                  {renderCommandRow(
+                    "popeye",
+                    POPEYE_CMD,
+                    "text-purple-300",
+                    <span className="inline-block bg-purple-700 text-white text-xs font-semibold rounded px-2 py-1 min-w-[80px] text-center">Popeye</span>,
+                  )}
                 </div>
               </div>
             </div>
