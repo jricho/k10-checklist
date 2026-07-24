@@ -149,3 +149,32 @@ In the deployed checklist, scroll to **Cluster Architecture Diagram**, click
 **Click to upload diagram**, and select `k10-arch.png`. The image stays in
 browser state — nothing is uploaded to a backend — and is embedded on a
 dedicated page when you **Export PDF**.
+
+## Run the cluster sanitizer (Popeye)
+
+The **Diagnostic Tools** card includes a **Cluster Sanitizer (Popeye)** command.
+[Popeye](https://popeyecli.io) is a read-only Kubernetes linter that reports
+misconfigurations (missing probes, resource limits, dangling references, etc.).
+Like the other diagnostics, you run it in your own shell against your current
+kubeconfig context and paste/upload the output — it is then appended to the
+exported PDF. Nothing runs server-side and the app needs no cluster access.
+
+Install it first (macOS shown; see popeyecli.io for other platforms):
+
+```bash
+brew install derailed/popeye/popeye
+```
+
+Then run the scoped scan surfaced in the UI:
+
+```bash
+popeye -n kasten-io \
+  -s po,deploy,sts,ds,svc,sa,sec,cm,pvc,ing,np,pdb,hpa,cronjobs,jobs,ro,rb \
+  -o jurassic | tee popeye.txt
+```
+
+The scan is scoped to the `kasten-io` namespace and, via `-s`, limited to the
+namespaced resource types K10 uses. Popeye cannot allow-list only K10-related
+**cluster-scoped** resources (its config is exclude-only), so cluster-scoped
+linters are intentionally left out to keep the report focused on K10. Paste
+`popeye.txt` into the **Cluster Sanitizer** box or use **Load from file**.
