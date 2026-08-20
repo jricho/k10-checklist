@@ -803,8 +803,13 @@ export default function ChecklistPage() {
                 aria-expanded={isOpen}
                 className="w-full bg-[#219150] hover:bg-[#1c7d44] transition-colors px-6 py-3 flex items-center justify-between gap-4 text-left"
               >
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider">{section.title}</h2>
-                <div className="flex items-center gap-3 shrink-0">
+                {/* span, not h2/div: a button may only contain phrasing content,
+                    and flow content here made the browser hoist it out of the
+                    button — which is what produced the hydration mismatch. This
+                    bug predates the rewrite; fixed in place so /legacy loads
+                    cleanly for comparison. */}
+                <span className="text-sm font-bold text-white uppercase tracking-wider">{section.title}</span>
+                <span className="flex items-center gap-3 shrink-0">
                   <span className="text-xs font-semibold text-white/90 bg-white/15 rounded-full px-2 py-0.5">
                     {sectionDone}/{sectionTotal}
                   </span>
@@ -818,7 +823,7 @@ export default function ChecklistPage() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
-                </div>
+                </span>
               </button>
               {isOpen && (
               <CardContent className="p-0">

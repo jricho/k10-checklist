@@ -73,62 +73,88 @@ export function PanelHeader({
   expanded?: boolean;
   className?: string;
 }) {
-  const inner = (
-    <div className="flex items-start justify-between gap-4 w-full text-left">
-      <div className="min-w-0">
-        {eyebrow && (
-          <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-1">
-            {eyebrow}
-          </div>
-        )}
-        <h2 className="font-display text-base font-semibold text-ink leading-snug">{title}</h2>
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        {meta}
-        {action}
-        {onClick && (
-          <svg
-            className={`h-4 w-4 text-ink-muted transition-transform duration-150 ${
-              expanded ? "rotate-180" : ""
-            }`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.25}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        )}
-      </div>
-    </div>
-  );
-
   const shell = `relative px-5 py-4 ${accent ? "pl-6" : ""} ${className}`;
   const rule = accent ? (
     <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-600" />
   ) : null;
 
+  const chevron = (
+    <svg
+      className={`h-4 w-4 text-ink-muted transition-transform duration-150 ${
+        expanded ? "rotate-180" : ""
+      }`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.25}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+
+  // Disclosure variant — the ARIA accordion pattern: the heading wraps the
+  // button, and everything inside the button is phrasing content.
+  //
+  // This previously rendered a <div> and an <h2> *inside* the <button>. Both are
+  // flow content, which a button may not contain, so the browser's parser hoists
+  // them out — the live DOM stops matching the server HTML and React reports a
+  // hydration mismatch. Invalid nesting is the least obvious item on React's
+  // list of causes and was the one that applied.
+  //
+  // `meta` stays inside the button (Chip renders a <span>, so it is phrasing and
+  // it widens the click target). `action` is deliberately outside: it is usually
+  // a link, and interactive content may not nest inside a button.
   if (onClick) {
     return (
-      <div className={`${shell} border-b border-line`}>
+      <div className={`${shell} border-b border-line flex items-start gap-3`}>
         {rule}
-        <button
-          type="button"
-          onClick={onClick}
-          aria-expanded={expanded}
-          className="w-full cursor-pointer group"
-        >
-          {inner}
-        </button>
+        <h2 className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={onClick}
+            aria-expanded={expanded}
+            className="w-full flex items-start justify-between gap-4 text-left cursor-pointer group"
+          >
+            <span className="min-w-0">
+              {eyebrow && (
+                <span className="block text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-1">
+                  {eyebrow}
+                </span>
+              )}
+              <span className="block font-display text-base font-semibold text-ink leading-snug">
+                {title}
+              </span>
+            </span>
+            <span className="flex items-center gap-3 shrink-0">
+              {meta}
+              {chevron}
+            </span>
+          </button>
+        </h2>
+        {action && <span className="shrink-0">{action}</span>}
       </div>
     );
   }
 
+  // Static variant: no button, so flow content is fine here.
   return (
     <div className={`${shell} border-b border-line`}>
       {rule}
-      {inner}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          {eyebrow && (
+            <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-1">
+              {eyebrow}
+            </div>
+          )}
+          <h2 className="font-display text-base font-semibold text-ink leading-snug">{title}</h2>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {meta}
+          {action}
+        </div>
+      </div>
     </div>
   );
 }

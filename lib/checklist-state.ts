@@ -75,7 +75,15 @@ export function emptyAssessment(): Assessment {
     meta: {
       project: "",
       clusterName: "",
-      date: new Date().toISOString().slice(0, 10),
+      // Deliberately empty rather than today's date.
+      //
+      // `useState(emptyAssessment)` runs its initialiser twice: once on the
+      // server during SSR and once on the client during hydration. Two separate
+      // `new Date()` calls straddling UTC midnight produce different strings, and
+      // the date input's value then differs between server HTML and client DOM —
+      // React's "variable input such as Date.now()" hydration failure. Filled in
+      // on mount instead, in the same effect that restores saved state.
+      date: "",
       assessor: "",
       rtoRpoNotes: "",
       signoffPlatform: "",
@@ -133,12 +141,23 @@ export function useAssessment() {
   // Read once on mount rather than in the initialiser: this component renders on
   // the server first, where localStorage does not exist.
   useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) setAssessment(migrate(JSON.parse(stored)));
+      if (stored) {
+        const restored = migrate(JSON.parse(stored));
+        setAssessment({
+          ...restored,
+          meta: { ...restored.meta, date: restored.meta.date || today },
+        });
+      } else {
+        // Client-only, so no SSR/client divergence: this runs after hydration.
+        setAssessment(prev => ({ ...prev, meta: { ...prev.meta, date: today } }));
+      }
     } catch {
       // Corrupt or unreadable payload — start clean rather than trapping the user
       // on a broken page with no way to reset.
+      setAssessment(prev => ({ ...prev, meta: { ...prev.meta, date: today } }));
     } finally {
       setLoaded(true);
     }
