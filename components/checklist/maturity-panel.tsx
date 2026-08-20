@@ -28,7 +28,19 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
     <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-base font-semibold text-gray-900">Maturity signals observed</h2>
-        <span className="text-xs text-gray-400 shrink-0">Kasten Maturity Model · 7 dimensions</span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className="text-xs text-gray-400">Kasten Maturity Model · 7 dimensions</span>
+          {/* Served from public/ so a self-hosted, air-gapped deployment still
+              has the workbook to hand. Keep it in step with the canonical
+              version — see README. */}
+          <a
+            href="/kasten-maturity-self-assessment.xlsx"
+            download
+            className="text-xs font-semibold text-[#219150] hover:underline"
+          >
+            Download the workbook (.xlsx) ↓
+          </a>
+        </div>
       </div>
       <p className="text-[13px] text-gray-500 mb-5 max-w-3xl leading-relaxed">
         What the verified items support, mapped onto the maturity model. This is evidence, not a score — the
@@ -101,9 +113,11 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
       </div>
 
       <p className="text-[12px] text-gray-400 mt-6 pt-4 border-t border-gray-100 leading-relaxed">
-        Next: record Current and Target Level for each dimension in the Self-Assessment sheet of the workbook, then
-        read the Recommendations tab for the level-transition actions. Reassess at least annually, or sooner after an
-        incident, a drill, fleet growth or a new regulatory requirement. This panel is reproduced in the PDF export.
+        Next: download the workbook above, record Current and Target Level for each dimension on its{" "}
+        <strong className="font-semibold text-gray-500">Self-Assessment</strong> sheet (the second tab), then read the{" "}
+        <strong className="font-semibold text-gray-500">Recommendations</strong> tab for the level-transition actions.
+        Reassess at least annually, or sooner after an incident, a drill, fleet growth or a new regulatory requirement.
+        This panel is reproduced in the PDF export.
       </p>
     </section>
   );

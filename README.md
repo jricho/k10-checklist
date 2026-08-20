@@ -42,6 +42,16 @@ descriptor concerns process, ownership and cadence that no `kubectl` command can
 observe, so the workbook remains the authoritative instrument. The checklist
 evidences a cluster on a date; the workbook judges an organisation over time.
 
+The workbook ships with the app at
+[`public/kasten-maturity-self-assessment.xlsx`](public/kasten-maturity-self-assessment.xlsx)
+and is downloadable from the Maturity panel, so a self-hosted or air-gapped
+deployment has it to hand. Its sheets are *Instructions*, **Self-Assessment**
+(the one you fill in), *Summary* and *Recommendations*.
+
+> **Maintainers:** this is a copy of the canonical *Kasten Maturity
+> Self-Assessment*. When the canonical version changes, replace the file here and
+> check the level descriptors still match the tags in `lib/stages/*.ts`.
+
 ## Verification commands
 
 Every item that can be evidenced from the cluster carries a `kubectl` command
