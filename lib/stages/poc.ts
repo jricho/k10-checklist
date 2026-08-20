@@ -44,6 +44,7 @@ export const POC_STAGE: Stage = {
           evidence:
             "A one-page scope: which namespaces, which workloads, what must be demonstrated, by when, and who accepts it.",
           blocking: true,
+          pillar: "infrastructure",
           signals: [["people", 1]],
         },
         {
@@ -51,6 +52,7 @@ export const POC_STAGE: Stage = {
           label: "Named technical owner and business sponsor",
           why: "Backup ownership defaults to nobody. The Resilience Playbook's minimum responsibility model needs a platform owner and a workload owner named on day one, not after the first failure.",
           evidence: "Two names recorded in the overview notes — one accountable for the platform, one for the data.",
+          pillar: "infrastructure",
           signals: [["people", 2]],
         },
         {
@@ -61,6 +63,8 @@ export const POC_STAGE: Stage = {
             "The POC namespace contains at least one stateful data service, on the same StorageClass and volume mode as the intended production workloads.",
           cmd: C.NAMESPACES_WITH_PVCS,
           blocking: true,
+          pillar: "infrastructure",
+          pillar2: "policy",
           signals: [["coverage", 1]],
         },
         {
@@ -69,6 +73,8 @@ export const POC_STAGE: Stage = {
           why: "Requirements drive the architecture, not the other way around. Even rough numbers change the POC: an RPO of 15 minutes and an RPO of 24 hours are different products.",
           evidence:
             "Production / non-production / edge tiers each with a target RPO and RTO in the overview notes, however approximate.",
+          pillar: "recovery",
+          pillar2: "policy",
           signals: [["dr", 2], ["people", 2]],
         },
         {
@@ -77,6 +83,8 @@ export const POC_STAGE: Stage = {
           why: "Milestone 1 sizing input, and the baseline every later coverage audit is measured against. Also the first honest answer to 'how much are we about to back up'.",
           evidence: "PVC count, provisioned capacity, namespace count, and an estimate of daily change rate.",
           cmd: C.PVC_FOOTPRINT,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["coverage", 1]],
         },
       ],
@@ -95,6 +103,7 @@ export const POC_STAGE: Stage = {
             "Server version inside the supported range for the Kasten release you intend to install. Note the client/server skew too.",
           cmd: C.K8S_VERSION,
           blocking: true,
+          pillar: "infrastructure",
           signals: [],
           docs: [
             { label: "Kasten system requirements", url: "https://docs.kasten.io/latest/install/requirements.html" },
@@ -106,6 +115,7 @@ export const POC_STAGE: Stage = {
           why: "Node readiness is table stakes; the zone and architecture columns are the ones that matter later. A cluster whose nodes all sit in one zone has a DR conversation coming, and mixed arm64/amd64 nodes change image and restore-target assumptions.",
           evidence: "Every node Ready. Record how many zones are represented and whether the control plane is HA.",
           cmd: C.NODE_SUMMARY,
+          pillar: "infrastructure",
           signals: [["dr", 1]],
         },
         {
@@ -114,6 +124,7 @@ export const POC_STAGE: Stage = {
           why: "Without the metrics API, `kubectl top` returns nothing and neither sizing nor backup-window impact can be measured. Cheaper to find now than during the first production backup.",
           evidence: "`v1beta1.metrics.k8s.io` present and Available=True.",
           cmd: C.METRICS_API,
+          pillar: "infrastructure",
           signals: [["observability", 1]],
         },
         {
@@ -123,6 +134,7 @@ export const POC_STAGE: Stage = {
           evidence: "Node utilisation with enough headroom that concurrent export jobs will not evict workloads.",
           cmd: `kubectl top nodes; kubectl describe nodes | grep -A6 'Allocated resources'`,
           oc: `oc adm top nodes; oc describe nodes | grep -A6 'Allocated resources'`,
+          pillar: "infrastructure",
           signals: [],
         },
         {
@@ -133,6 +145,8 @@ export const POC_STAGE: Stage = {
             "Enforce level recorded for kasten-io and every application namespace in scope; any exception needed is identified now.",
           cmd: C.PSA_LABELS,
           oc: `oc get scc -o custom-columns='NAME:.metadata.name,PRIV:.allowPrivilegedContainer,RUNASUSER:.runAsUser.type,FSGROUP:.fsGroup.type'; ${C.PSA_LABELS.replace(/\bkubectl\b/g, "oc")}`,
+          pillar: "security",
+          pillar2: "infrastructure",
           signals: [["appconsistency", 1]],
         },
         {
@@ -141,6 +155,7 @@ export const POC_STAGE: Stage = {
           why: "Air-gapped and proxied clusters need a mirror configured before install, and image pull failures elsewhere in the cluster are an early warning that yours will fail too.",
           evidence: "No ImagePullBackOff/ErrImagePull anywhere, or a documented registry mirror for the Kasten images.",
           cmd: C.UNHEALTHY_PODS,
+          pillar: "infrastructure",
           signals: [],
         },
       ],
@@ -158,6 +173,7 @@ export const POC_STAGE: Stage = {
           evidence: "The snapshot.storage.k8s.io API group resolves and a snapshot-controller Deployment exists and is ready.",
           cmd: C.SNAPSHOT_STACK,
           blocking: true,
+          pillar: "infrastructure",
           signals: [["storage", 1]],
         },
         {
@@ -166,6 +182,7 @@ export const POC_STAGE: Stage = {
           why: "The default class decides where restores land when a manifest omits one. `allowVolumeExpansion` decides whether a restore into a slightly larger volume is possible. Both are restore-time facts worth knowing before the restore.",
           evidence: "Every StorageClass listed with provisioner, default annotation, reclaim policy, expansion and binding mode.",
           cmd: C.STORAGECLASS_SUMMARY,
+          pillar: "infrastructure",
           signals: [["storage", 1]],
         },
         {
@@ -175,6 +192,7 @@ export const POC_STAGE: Stage = {
           evidence: "Each CSI driver in use has an annotated VolumeSnapshotClass. Record the deletion policy for each.",
           cmd: C.VSC_SUMMARY,
           blocking: true,
+          pillar: "infrastructure",
           signals: [["storage", 1]],
           docs: [
             { label: "Kasten install checklist", url: "https://docs.kasten.io/latest/install/checklist.html" },
@@ -188,6 +206,8 @@ export const POC_STAGE: Stage = {
             "The list of provisioners backing real PVCs is a subset of the list of drivers with a VolumeSnapshotClass. Any provisioner in the first list and not the second is an accepted-risk decision, in writing.",
           cmd: C.SC_WITHOUT_SNAPSHOT_CLASS,
           blocking: true,
+          pillar: "infrastructure",
+          pillar2: "policy",
           signals: [["storage", 2], ["coverage", 2]],
         },
         {
@@ -197,6 +217,8 @@ export const POC_STAGE: Stage = {
           evidence:
             "A VolumeSnapshot reaches readyToUse=true and a PVC created with it as dataSource binds. Performed via your own change process, not from this checklist.",
           cmd: C.SNAPSHOT_INVENTORY,
+          pillar: "infrastructure",
+          pillar2: "recovery",
           signals: [["storage", 1]],
         },
       ],
@@ -211,6 +233,7 @@ export const POC_STAGE: Stage = {
           why: "Helm gives immediate access to new releases; Marketplace/Operator simplifies lifecycle but can lag releases by days while the vendor validates. That trade-off should be a decision, not an accident, because it determines how quickly you can take a fix.",
           evidence: "Chart or operator version installed, and a note of why that method was chosen.",
           cmd: C.K10_VERSION_INSTALLED,
+          pillar: "infrastructure",
           signals: [["central", 1]],
         },
         {
@@ -219,6 +242,7 @@ export const POC_STAGE: Stage = {
           why: "This output is the authoritative record of auth mode, FIPS, encryption settings, ingress, resource overrides and sidecar injection. A DR-time reinstall that silently differs from the original is its own outage — and support's first question is always what you installed with.",
           evidence: "`helm get values` output committed alongside your infrastructure code, not pasted in a ticket.",
           cmd: `${C.K10_HELM_VALUES}; echo '--- including defaults ---'; ${C.K10_HELM_VALUES} -a`,
+          pillar: "infrastructure",
           signals: [["central", 2], ["people", 2]],
         },
         {
@@ -227,6 +251,7 @@ export const POC_STAGE: Stage = {
           why: "A pod that is Running today but has restarted forty times is an unresolved resource or configuration problem waiting for the busiest backup window to reappear. Phase alone hides it.",
           evidence: "No pods outside Running, and restart counts at or near zero. Investigate anything non-zero.",
           cmd: C.K10_POD_HEALTH,
+          pillar: "infrastructure",
           signals: [],
         },
         {
@@ -235,6 +260,7 @@ export const POC_STAGE: Stage = {
           why: "The primer checks exactly the prerequisites that cause silent failures later — snapshot classes, CSI capability, RBAC. Warnings deferred at POC become go-live blockers found under time pressure.",
           evidence: "Primer output attached, with each warning either fixed or accepted in writing.",
           cmd: `curl -s https://docs.kasten.io/downloads/latest/tools/k10_primer.sh | bash`,
+          pillar: "infrastructure",
           signals: [["storage", 1]],
         },
         {
@@ -244,6 +270,8 @@ export const POC_STAGE: Stage = {
           evidence: "Dashboard loads. No Ingress or Route exposing it publicly yet.",
           cmd: `kubectl get svc,ingress -n ${C.K10_NS}`,
           oc: `oc get svc,route -n ${C.K10_NS}`,
+          pillar: "infrastructure",
+          pillar2: "security",
           signals: [],
         },
         {
@@ -252,6 +280,7 @@ export const POC_STAGE: Stage = {
           why: "Token or basic auth is fine for a two-week POC and is not fine for production. Deciding now which mode production will use — OpenShift Auth, OIDC, LDAP — prevents a reinstall later, since some auth settings are install-time.",
           evidence: "Current mode visible in the Helm values, and the intended production mode recorded.",
           cmd: `${C.K10_HELM_VALUES} | grep -Ei 'auth|oidc|ldap|token|dex' || echo 'no auth overrides — running install default'`,
+          pillar: "security",
           signals: [["central", 2]],
         },
         {
@@ -262,6 +291,8 @@ export const POC_STAGE: Stage = {
             "The passphrase is in the organisation's secret store or physical escrow, outside this cluster, with a documented retrieval procedure and at least two people able to retrieve it.",
           cmd: `kubectl get secrets -n ${C.K10_NS} -o name | grep -Ei 'encryption|passphrase|dr-secret'`,
           blocking: true,
+          pillar: "security",
+          pillar2: "recovery",
           signals: [["storage", 2], ["people", 2]],
         },
       ],
@@ -279,6 +310,8 @@ export const POC_STAGE: Stage = {
           evidence: "Profile present with validation Success, and the bucket or repository recorded.",
           cmd: C.PROFILE_SUMMARY,
           blocking: true,
+          pillar: "policy",
+          pillar2: "recovery",
           signals: [["storage", 2]],
         },
         {
@@ -288,6 +321,8 @@ export const POC_STAGE: Stage = {
           evidence: "The policy's action list contains `export`, targeting the validated Location Profile.",
           cmd: `${C.POLICY_SUMMARY}; echo; ${C.POLICIES_WITHOUT_EXPORT}`,
           blocking: true,
+          pillar: "policy",
+          pillar2: "recovery",
           signals: [["coverage", 2], ["storage", 2]],
         },
         {
@@ -297,6 +332,7 @@ export const POC_STAGE: Stage = {
           evidence: "Backup and export actions in state Complete. Zero warnings — investigate, do not accept, any that appear.",
           cmd: `${C.BACKUP_ACTION_HISTORY}; echo; ${C.ACTIONS_NOT_COMPLETE}`,
           blocking: true,
+          pillar: "policy",
           signals: [["coverage", 2]],
         },
         {
@@ -306,6 +342,7 @@ export const POC_STAGE: Stage = {
           evidence: "A RestoreAction in state Complete, and the application verified working by whoever owns it — not just Running.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
           signals: [["people", 2], ["dr", 2]],
         },
         {
@@ -316,6 +353,8 @@ export const POC_STAGE: Stage = {
             "A restore completed sourced from the exported restore point in the Location Profile, with the corresponding local snapshot removed or excluded. Record the duration: this is your first real RTO data point.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
+          pillar2: "infrastructure",
           signals: [["dr", 2], ["storage", 2], ["people", 2]],
         },
         {
@@ -327,6 +366,7 @@ export const POC_STAGE: Stage = {
           // Level 2 of Application Consistency in the playbook is precisely
           // "awareness of which workloads need application-aware handling, but
           // Blueprints not yet broadly applied" — which is what this item is.
+          pillar: "policy",
           signals: [["appconsistency", 2]],
         },
         {
@@ -335,6 +375,7 @@ export const POC_STAGE: Stage = {
           why: "POC findings are the pre-production backlog. Unwritten, they are rediscovered at go-live by someone under pressure who does not know they were already understood.",
           evidence: "A gap list carried into the Pre-Production stage, each entry with an owner and a due stage.",
           blocking: true,
+          pillar: "infrastructure",
           signals: [["people", 2]],
         },
       ],

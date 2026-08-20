@@ -226,12 +226,18 @@ Full redesign in one pass, but land it in this order so each layer is checkable:
    ramp as CSS variables through `@theme`, finish dark mode, set the type scale.
 2. **Components** — restyle against the tokens; structural cards, crisp borders,
    focus rings, hover states, one staggered reveal on load.
-3. **Pillar tags and filter** — add `pillar` to `ChecklistItem`, tag all 112,
-   build the filter.
-4. **Radar and matrix** — hand-rolled SVG, plus the canvas-to-raster path so it
-   reaches the PDF.
+3. ~~**Pillar tags and filter**~~ **Done.** `pillar` and optional `pillar2` on
+   `ChecklistItem`, all 112 tagged by hand, filter in
+   `components/checklist/pillar-filter.tsx`.
+4. ~~**Radar**~~ **Done.** Geometry in `lib/radar.ts`, SVG in
+   `components/checklist/maturity-radar.tsx`, jsPDF twin in `PdfWriter.radar()`.
+   The canvas-to-raster path was **rejected** — see below.
 5. **Re-verify** — `tsc`, `eslint`, `validateChecklistData()`, and a PDF export
    compared against the screen.
+
+The matrix from section 3 was not built. The radar plus the existing
+per-dimension evidence list covers the same ground, and a third view of the same
+seven numbers on one panel is repetition rather than density.
 
 ## Decisions still needed
 
@@ -245,6 +251,59 @@ Full redesign in one pass, but land it in this order so each layer is checkable:
    still tires a reader. Values and their measured ratios are in `globals.css`.
    If the ramp is revisited, restore `app/design/` from git history rather than
    comparing hex values in the abstract.
-3. **Pillar assignment.** Four pillars over 112 items will not partition
-   cleanly — `restore-from-export` is arguably DR Validation and Infrastructure
-   Integrity both. Single pillar per item, or multiple?
+3. ~~**Pillar assignment.**~~ **Resolved.** Primary plus optional secondary.
+   `pillar` is required and exactly one, so the four owned counts partition the
+   112 and the figures can be trusted to add up; `pillar2` is optional and the
+   filter matches on either, because the two errors are not equally costly — a
+   security reviewer who never sees `restore-from-export` has missed something,
+   one who sees a marginal item has read an extra line.
+
+   Assignment as built: **Infrastructure 42, Policy 27, Security 15,
+   Recovery 28** owned; 61 / 39 / 25 / 42 matched once secondaries count. 55 of
+   112 items carry a secondary.
+
+   Two things a future maintainer should know before re-tagging. The four pillars
+   have **no home for Observability or Governance**, both of which *are* maturity
+   dimensions — those items were placed on judgement, and seven whose subject is
+   policy behaviour rather than platform health (`alerts-defined`,
+   `daily-alert-triage`, `weekly-job-review`, `weekly-window-check`,
+   `first-full-window`, `snapshot-retention-controlled`, `orphan-snapshot-sweep`)
+   were moved to Policy Automation specifically to stop Infrastructure Integrity
+   becoming a 49-item catch-all. And the five items carrying `signals: []` — the
+   "the install actually works" prerequisites — sit under Infrastructure
+   Integrity, which is the concrete reason the pillars are tagged by hand rather
+   than derived from the dimension signals. Derived, those five would be
+   unreachable by any filter.
+
+## Decisions taken while building the radar
+
+**The canvas-to-raster path was rejected.** Section 3 offered it as one of two
+options. Rasterising the on-screen SVG needs a live DOM node to paint onto a
+canvas, so an export taken without ever opening the maturity panel would produce
+a PDF with the chart silently absent — a failure of the artefact test in
+Constraints, and a silent one. `PdfWriter.radar()` draws from the shared geometry
+with jsPDF line primitives instead: vector, crisp at print size, and independent
+of what is rendered. `lib/radar.ts` is the single source of the trigonometry, and
+a check in the verification pass asserts that both renderers produce identical
+vertices under scale.
+
+**Weight is `blocking`, not a new field.** "Weight sizes the radar" would
+otherwise mean a third editorial pass inventing a number for 112 items. The
+`blocking` flag already carries curated judgement across 48 of them and cannot
+drift out of step with the gates, so the dimensions the chart emphasises are
+exactly those that can stop a sign-off. Per-dimension weights currently run
+`people 16, storage 13, dr 12, coverage 10, observability 4, appconsistency 2,
+central 2`.
+
+**Weight affects spoke thickness only — never radius, never angle.** The obvious
+reading, an angular sector per dimension, was rejected: it makes the same
+evidenced level enclose different areas on different axes, and an area that
+cannot be compared across axes is decoration on the one summary that must be read
+at a glance.
+
+**The filter is not persisted, and that is deliberate.** A filter restored on
+load would hide items without the click that explains why. Gate state, progress
+and the PDF export are all computed across every item regardless of the filter,
+section chips keep reporting whole-section counts while filtered, and an active
+filter raises a banner naming how many items are hidden. The risk being managed
+is someone reading a filtered stage as a complete one and signing it.

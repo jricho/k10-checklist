@@ -25,12 +25,27 @@ import {
   type ItemStatus,
   type StageId,
 } from "./checklist-data";
-import { maturityEvidence } from "./maturity";
+import { maturityEvidence, radarInputs } from "./maturity";
 import { describeTier, tierWarnings } from "./architecture";
+import {
+  RADAR_LEVELS,
+  describeRadar,
+  radarGeometry,
+  toRelativeSegments,
+  type RadarInput,
+} from "./radar";
 
-const VEEAM_GREEN: [number, number, number] = [33, 145, 80];
+// Brand green, matching the screen's `--brand-600` rather than the older #219150
+// this file used to hardcode. #00B356 is the brand token of record but measures
+// 2.77:1 against white, so it cannot carry the white banner text; brand-600
+// (#009149) is the same green one step darker at 4.08:1, and is what the UI uses
+// in the equivalent role. Screen and PDF should read as the same document.
+const VEEAM_GREEN: [number, number, number] = [0, 145, 73];
+/** Pale brand tint for filled areas. Flat, not translucent — see PdfWriter.radar. */
+const BRAND_TINT: [number, number, number] = [214, 240, 226];
 const INK: [number, number, number] = [50, 50, 50];
 const MUTED: [number, number, number] = [110, 110, 110];
+const RULE: [number, number, number] = [205, 205, 205];
 const RED: [number, number, number] = [190, 45, 45];
 const AMBER: [number, number, number] = [190, 130, 20];
 
@@ -70,6 +85,17 @@ interface JsPdfLike {
   setPage(n: number): void;
   getNumberOfPages(): number;
   addImage(data: string, format: string, x: number, y: number, w: number, h: number): void;
+  setLineWidth(width: number): void;
+  circle(x: number, y: number, r: number, style?: string): void;
+  /** Relative segments from a start point — jsPDF has no absolute polygon call. */
+  lines(
+    lines: number[][],
+    x: number,
+    y: number,
+    scale?: [number, number],
+    style?: string,
+    closed?: boolean,
+  ): void;
   save(filename: string): void;
 }
 
@@ -216,6 +242,104 @@ class PdfWriter {
         { size: 7.5, colour: MUTED, style: "italic" },
       );
     }
+  }
+
+  /**
+   * The maturity radar, drawn with line primitives from the shared geometry in
+   * lib/radar.ts.
+   *
+   * Vector rather than a rasterised screenshot of the SVG. jsPDF cannot render
+   * SVG, so the alternative needs a live DOM node to paint onto a canvas — and a
+   * customer who exports without opening the maturity panel would get a PDF with
+   * the chart missing, which fails the artefact this tool exists to produce.
+   * Drawing it here also keeps it crisp at print size and legible in greyscale.
+   *
+   * The geometry is the same function the screen calls, so the two cannot drift.
+   * Only the unit changes: millimetres here, CSS pixels there.
+   */
+  radar(inputs: RadarInput[]) {
+    const radius = 34;
+    const labelBand = 16;
+    const blockHeight = radius * 2 + labelBand * 2;
+    this.reserve(blockHeight + 6);
+
+    const geometry = radarGeometry(inputs, {
+      radius,
+      centre: { x: PAGE_W / 2, y: this.y + labelBand + radius },
+      labelGap: 6,
+    });
+
+    // Rings, faintest first. The outer ring is drawn stronger so the L5 boundary
+    // is a boundary rather than a guess.
+    this.doc.setDrawColor(...RULE);
+    for (const ring of geometry.rings) {
+      const outer = ring.level === RADAR_LEVELS;
+      this.doc.setLineWidth(outer ? 0.35 : 0.15);
+      this.doc.setDrawColor(...(outer ? MUTED : RULE));
+      this.doc.lines(toRelativeSegments(ring.polygon), ring.polygon[0].x, ring.polygon[0].y, [1, 1], "S", true);
+    }
+
+    // Spokes, thickened by weight. Emphasis only — never a plotted level.
+    this.doc.setDrawColor(...RULE);
+    for (const axis of geometry.axes) {
+      this.doc.setLineWidth(0.1 * axis.emphasis);
+      this.doc.line(geometry.centre.x, geometry.centre.y, axis.tip.x, axis.tip.y);
+    }
+
+    if (geometry.degenerate) {
+      this.doc.setFillColor(...MUTED);
+      this.doc.circle(geometry.centre.x, geometry.centre.y, 1, "F");
+    } else {
+      // Solid pale fill rather than a translucent one: alpha needs jsPDF's
+      // graphics-state extension, and a flat tint reproduces identically on
+      // every printer and PDF viewer, which matters more here than the effect.
+      this.doc.setFillColor(...BRAND_TINT);
+      this.doc.setDrawColor(...VEEAM_GREEN);
+      this.doc.setLineWidth(0.6);
+      this.doc.lines(
+        toRelativeSegments(geometry.polygon),
+        geometry.polygon[0].x,
+        geometry.polygon[0].y,
+        [1, 1],
+        "FD",
+        true,
+      );
+      this.doc.setFillColor(...VEEAM_GREEN);
+      for (const axis of geometry.axes) {
+        if (axis.value > 0) this.doc.circle(axis.point.x, axis.point.y, 0.8, "F");
+      }
+    }
+
+    // Ring numerals last, so the polygon fill cannot hide them. Upward axis only.
+    this.doc.setFont("courier", "normal");
+    this.doc.setFontSize(6);
+    this.doc.setTextColor(...MUTED);
+    // INK rather than MUTED: over the pale fill, muted grey measures 4.23:1 and
+    // these numerals are 6pt, below the size where that passes.
+    this.doc.setTextColor(...INK);
+    for (const ring of geometry.rings) {
+      this.doc.text(String(ring.level), geometry.centre.x + 1.2, geometry.centre.y - ring.radius + 1.2);
+    }
+
+    // Axis labels carry the level as a numeral, so the chart reads in greyscale
+    // and through a screen reader's description of the same text.
+    const fontSize = 7;
+    const emToMm = fontSize * 0.3528;
+    this.doc.setFont("helvetica", "normal");
+    this.doc.setFontSize(fontSize);
+    this.doc.setTextColor(...INK);
+    for (const axis of geometry.axes) {
+      const align = axis.align === "start" ? "left" : axis.align === "end" ? "right" : "center";
+      this.doc.text(
+        `${axis.label} L${axis.value}`,
+        axis.labelPoint.x,
+        axis.labelPoint.y + axis.baselineShift * emToMm,
+        { align },
+      );
+    }
+
+    this.y += blockHeight + 3;
+    this.doc.setLineWidth(0.2);
   }
 
   image(dataUrl: string, dims: { w: number; h: number }) {
@@ -456,6 +580,18 @@ export async function exportAssessmentPdf({
     );
   }
   w.space(2);
+
+  // The chart, then the same information as a sentence. The text is not a
+  // fallback: this page is printed, photocopied and read aloud on calls, and a
+  // polygon does not survive any of those three.
+  const radar = radarInputs(statuses);
+  w.radar(radar);
+  w.paragraph(describeRadar(radar), { size: 8, colour: MUTED });
+  w.paragraph(
+    "Each axis plots the highest level with no outstanding item below it — evidence is a ladder, so a dimension with one outstanding Level 2 item plots at Level 1 however many higher items are passing. Spoke thickness reflects the number of blocking items a dimension carries; it never changes a plotted level.",
+    { size: 7.5, colour: MUTED, style: "italic" },
+  );
+  w.space(3);
 
   for (const ev of maturityEvidence(statuses)) {
     w.sectionHeading(

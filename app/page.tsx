@@ -6,6 +6,7 @@ import Link from "next/link";
 import { StageNav, StageHeader } from "../components/checklist/stage-nav";
 import { Sidebar } from "../components/checklist/sidebar";
 import { SectionCard } from "../components/checklist/section-card";
+import { PillarFilter } from "../components/checklist/pillar-filter";
 import { MaturityPanel } from "../components/checklist/maturity-panel";
 import { ArchitecturePanel } from "../components/checklist/architecture-panel";
 import { DiagnosticsCard } from "../components/checklist/diagnostics-card";
@@ -17,7 +18,7 @@ import {
   EXPORT_SCOPE_LABELS,
   type ExportScope,
 } from "../lib/export-pdf";
-import { STAGES, STAGES_BY_ID, overallProgress } from "../lib/checklist-data";
+import { STAGES, STAGES_BY_ID, itemsForStage, overallProgress, type PillarId } from "../lib/checklist-data";
 import {
   ChevronRightIcon,
   DocumentIcon,
@@ -45,6 +46,9 @@ export default function ChecklistPage() {
   // sign-off needs the upstream evidence, but not the stages still ahead.
   const [exportScope, setExportScope] = useState<ExportScope>("through");
   const [showTools, setShowTools] = useState(false);
+  // Deliberately component state, not persisted. A filter restored on load would
+  // hide items without the click that explains why — see pillar-filter.tsx.
+  const [pillar, setPillar] = useState<PillarId | null>(null);
   const [askOpen, setAskOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -335,17 +339,27 @@ export default function ChecklistPage() {
               <StageHeader stageId={activeStage} statuses={statuses} />
             </div>
 
-        <div className="space-y-5 reveal" style={{ "--reveal-index": "3" } as React.CSSProperties}>
-          {stage.sections.map(section => (
-            <SectionCard
-              key={section.id}
-              section={section}
-              statuses={statuses}
-              notes={notes}
-              onStatus={setStatus}
-              onNote={setNote}
-            />
-          ))}
+        <div className="reveal" style={{ "--reveal-index": "3" } as React.CSSProperties}>
+          <PillarFilter
+            items={itemsForStage(activeStage)}
+            statuses={statuses}
+            active={pillar}
+            onChange={setPillar}
+          />
+
+          <div className="space-y-5">
+            {stage.sections.map(section => (
+              <SectionCard
+                key={section.id}
+                section={section}
+                statuses={statuses}
+                notes={notes}
+                onStatus={setStatus}
+                onNote={setNote}
+                pillar={pillar}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="mt-8 space-y-6 reveal" style={{ "--reveal-index": "4" } as React.CSSProperties}>

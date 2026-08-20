@@ -26,6 +26,8 @@ import {
   type StatusMap,
 } from "./checklist-data";
 
+import type { RadarInput } from "./radar";
+
 const LEVELS: MaturityLevel[] = [1, 2, 3, 4, 5];
 
 /** Items tagged as evidence for a given dimension at a given level. */
@@ -115,6 +117,39 @@ export function weakestDimensions(statuses: StatusMap, count = 3): DimensionEvid
   return [...maturityEvidence(statuses)]
     .sort((a, b) => a.evidencedLevel - b.evidencedLevel || b.blockingNextLevel.length - a.blockingNextLevel.length)
     .slice(0, count);
+}
+
+/**
+ * Consequence of a dimension, as the number of blocking items tagged to it.
+ *
+ * `blocking` is used as the weight rather than a dedicated `weight` field on all
+ * 112 items. Two reasons. It already exists and is already curated — 48 items
+ * earned the flag through a deliberate pass, so it carries real editorial
+ * judgement rather than a number invented per item in a second pass. And it
+ * cannot drift out of step with the gates, which is the property that matters:
+ * the dimensions the chart emphasises are exactly the ones that can stop a
+ * sign-off.
+ *
+ * Weight never moves a gate and never moves a plotted level. It affects emphasis
+ * only. See the note on `RadarInput.weight`.
+ */
+export function dimensionWeight(dimension: DimensionId): number {
+  return ALL_ITEMS.filter(i => i.blocking && i.signals.some(([d]) => d === dimension)).length;
+}
+
+/**
+ * The seven dimensions as radar input, in workbook row order.
+ *
+ * Values come straight from `evidencedLevel`, so the chart and the evidence list
+ * beside it are computed once and cannot disagree.
+ */
+export function radarInputs(statuses: StatusMap): RadarInput[] {
+  return maturityEvidence(statuses).map(ev => ({
+    key: ev.dimension,
+    label: DIMENSIONS[ev.dimension].axis,
+    value: ev.evidencedLevel,
+    weight: dimensionWeight(ev.dimension),
+  }));
 }
 
 /** One-line summary for the PDF header and the UI banner. */
