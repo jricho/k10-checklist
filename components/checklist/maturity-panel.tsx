@@ -2,6 +2,7 @@
 
 import { DIMENSIONS, type StatusMap } from "../../lib/checklist-data";
 import { maturityEvidence } from "../../lib/maturity";
+import { DownloadIcon, Marker } from "../ui/icon";
 
 // The visible link between this tool and the Resilience Playbook.
 //
@@ -29,7 +30,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-base font-semibold text-ink">Maturity signals observed</h2>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="text-xs text-ink-faint">Kasten Maturity Model · 7 dimensions</span>
+          <span className="text-xs text-ink-muted">Kasten Maturity Model · 7 dimensions</span>
           {/* Served from public/ so a self-hosted, air-gapped deployment still
               has the workbook to hand. Keep it in step with the canonical
               version — see README. */}
@@ -38,7 +39,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
             download
             className="text-xs font-semibold text-brand-700 hover:underline"
           >
-            Download the workbook (.xlsx) ↓
+            Download the workbook (.xlsx) <DownloadIcon />
           </a>
         </div>
       </div>
@@ -83,7 +84,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
                 {ev.evidencedLevel > 0
                   ? `Evidence supports L${ev.evidencedLevel} — ${LEVEL_LABELS[ev.evidencedLevel]}`
                   : "No level fully evidenced yet"}
-                <span className="text-ink-faint">
+                <span className="text-ink-muted">
                   {" "}
                   ({ev.passedCount}/{ev.taggedCount} items)
                 </span>
@@ -92,13 +93,13 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
             <div className="md:pt-0.5">
               {ev.blockingNextLevel.length > 0 && ev.nextLevel ? (
                 <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint mb-1">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">
                     To evidence Level {ev.nextLevel}
                   </div>
                   <ul className="space-y-1">
                     {ev.blockingNextLevel.map(item => (
                       <li key={item.id} className="flex gap-2 text-[12px] text-ink-soft">
-                        <span className="text-amber-500 shrink-0">•</span>
+                        <Marker className="bg-amber-500" />
                         {item.label}
                       </li>
                     ))}
@@ -116,7 +117,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
         ))}
       </div>
 
-      <p className="text-[12px] text-ink-faint mt-6 pt-4 border-t border-line leading-relaxed">
+      <p className="text-xs text-ink-muted mt-6 pt-4 border-t border-line leading-relaxed">
         Next: download the workbook above, record Current and Target Level for each dimension on its{" "}
         <strong className="font-semibold text-ink-muted">Self-Assessment</strong> sheet (the second tab), then read the{" "}
         <strong className="font-semibold text-ink-muted">Recommendations</strong> tab for the level-transition actions.

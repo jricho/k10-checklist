@@ -16,14 +16,18 @@ export function Panel({
   children,
   className = "",
   raised = false,
+  id,
 }: {
   children: ReactNode;
   className?: string;
   /** For surfaces that float above the page — modals, sticky bars. Not for content cards. */
   raised?: boolean;
+  /** Anchor id, for in-page navigation. */
+  id?: string;
 }) {
   return (
     <section
+      id={id}
       className={`bg-surface border border-line rounded-card overflow-hidden ${
         raised ? "shadow-raised" : "shadow-card"
       } ${className}`}
@@ -73,7 +77,7 @@ export function PanelHeader({
     <div className="flex items-start justify-between gap-4 w-full text-left">
       <div className="min-w-0">
         {eyebrow && (
-          <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-1">
+          <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-1">
             {eyebrow}
           </div>
         )}
@@ -84,7 +88,7 @@ export function PanelHeader({
         {action}
         {onClick && (
           <svg
-            className={`h-4 w-4 text-ink-faint transition-transform duration-150 ${
+            className={`h-4 w-4 text-ink-muted transition-transform duration-150 ${
               expanded ? "rotate-180" : ""
             }`}
             fill="none"

@@ -9,6 +9,7 @@ import {
   type DrTopology,
   type WorkloadTier,
 } from "../../lib/architecture";
+import { AlertIcon, CheckIcon, ExternalLinkIcon } from "../ui/icon";
 
 // Workload tiers and DR topology — Playbook §4.3, §4.7.
 //
@@ -45,7 +46,7 @@ function TierRow({
    */
   const echo = (raw: string, mins: number | null) =>
     mins !== null && raw.trim() !== formatMinutes(mins) ? (
-      <p className="text-[10px] text-ink-faint mt-1">= {formatMinutes(mins)}</p>
+      <p className="text-[11px] text-ink-muted mt-1">= {formatMinutes(mins)}</p>
     ) : null;
   const overTarget = rto !== null && measured !== null && measured > rto;
   const withinTarget = rto !== null && measured !== null && measured <= rto;
@@ -114,7 +115,7 @@ function TierRow({
             </option>
           ))}
         </select>
-        <p className="text-[10px] text-ink-faint mt-1 leading-snug">
+        <p className="text-[11px] text-ink-muted mt-1 leading-snug">
           {tier.topology === "undecided" ? info.suitability : `RTO ${info.rtoRange} · ${info.cost}`}
         </p>
       </div>
@@ -133,13 +134,13 @@ function TierRow({
             className={cell}
           />
           {overTarget && (
-            <span title="Exceeds the RTO target" className="text-red-600 text-sm font-bold shrink-0">
-              !
+            <span title="Exceeds the RTO target" className="shrink-0">
+              <AlertIcon className="text-red-600" />
             </span>
           )}
           {withinTarget && (
-            <span title="Within the RTO target" className="text-brand-700 text-sm font-bold shrink-0">
-              ✓
+            <span title="Within the RTO target" className="shrink-0">
+              <CheckIcon className="text-brand-700" />
             </span>
           )}
         </div>
@@ -199,7 +200,7 @@ export function ArchitecturePanel({
           rel="noopener noreferrer"
           className="text-xs font-medium text-brand-700 hover:underline shrink-0"
         >
-          Playbook §4.3, §4.7 ↗
+          Playbook §4.3, §4.7 <ExternalLinkIcon />
         </a>
       </div>
       <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">

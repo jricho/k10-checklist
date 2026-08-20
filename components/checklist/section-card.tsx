@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CommandBlock } from "../ui/command-block";
 import { StatusToggle } from "../ui/status-toggle";
 import { Chip, Panel, PanelHeader, PanelIntro } from "../ui/panel";
+import { ExternalLinkIcon } from "../ui/icon";
 import {
   DIMENSIONS,
   ocCommandFor,
@@ -87,7 +88,7 @@ function ItemRow({
 
           <p className="text-sm text-ink-muted mt-1 leading-relaxed max-w-3xl">{item.why}</p>
 
-          <p className="text-xs text-ink-faint mt-1.5 max-w-3xl">
+          <p className="text-xs text-ink-muted mt-1.5 max-w-3xl">
             <span className="font-semibold text-ink-muted">Evidence of pass: </span>
             {item.evidence}
           </p>
@@ -97,7 +98,7 @@ function ItemRow({
               <span
                 key={`${dim}-${level}`}
                 title={`Evidence for Level ${level} of ${DIMENSIONS[dim].name} in the Kasten Maturity Model`}
-                className="text-2xs font-medium text-ink-muted"
+                className="text-xs font-medium text-ink-muted"
               >
                 {DIMENSIONS[dim].short}
                 <span className="text-brand-700 font-semibold"> L{level}</span>
@@ -111,14 +112,14 @@ function ItemRow({
                 rel="noopener noreferrer"
                 className="text-2xs font-medium text-brand-700 hover:underline"
               >
-                {d.label} ↗
+                {d.label} <ExternalLinkIcon />
               </a>
             ))}
             <button
               type="button"
               onClick={() => setOpen(v => !v)}
               aria-expanded={open}
-              className="text-2xs font-semibold text-ink-faint hover:text-brand-700 transition-colors"
+              className="text-xs font-semibold text-ink-muted hover:text-brand-700 transition-colors"
             >
               {open ? "Hide" : item.cmd ? "Verify & note" : "Add note"}
             </button>
@@ -139,7 +140,7 @@ function ItemRow({
             </div>
           )}
           <div>
-            <label htmlFor={`note-${item.id}`} className="block text-2xs font-medium text-ink-faint mb-1">
+            <label htmlFor={`note-${item.id}`} className="block text-xs font-medium text-ink-muted mb-1">
               {needsNote
                 ? status === "na"
                   ? "Why does this not apply? (printed in the export)"
@@ -192,7 +193,8 @@ export function SectionCard({
   ).length;
 
   return (
-    <Panel>
+    // Anchor target for the sidebar jump list. scroll-mt clears the sticky header.
+    <Panel id={`section-${section.id}`} className="scroll-mt-20">
       <PanelHeader
         accent
         title={section.title}

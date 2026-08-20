@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { StageNav, StageHeader } from "../components/checklist/stage-nav";
+import { Sidebar } from "../components/checklist/sidebar";
 import { SectionCard } from "../components/checklist/section-card";
 import { MaturityPanel } from "../components/checklist/maturity-panel";
 import { ArchitecturePanel } from "../components/checklist/architecture-panel";
@@ -16,6 +17,7 @@ import {
   type ExportScope,
 } from "../lib/export-pdf";
 import { STAGES_BY_ID, overallProgress } from "../lib/checklist-data";
+import { DownloadIcon, ExternalLinkIcon } from "../components/ui/icon";
 
 // The page is now composition only: state comes from `useAssessment`, structure
 // from `lib/checklist-data`, output from `lib/export-pdf`. The original version
@@ -82,7 +84,7 @@ export default function ChecklistPage() {
   return (
     <div className="min-h-screen">
       <header className="bg-surface border-b border-line shadow-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-[86rem] mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <Image
               src="/veeam_logo.svg"
@@ -99,7 +101,7 @@ export default function ChecklistPage() {
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="hidden md:block text-[11px] text-ink-faint tabular-nums mr-1">
+            <span className="hidden md:block text-xs text-ink-muted tabular-nums mr-1">
               {overall.passed}/{overall.applicable} overall
             </span>
             <input ref={fileInput} type="file" accept=".json" className="hidden" onChange={handleLoadJson} />
@@ -169,7 +171,7 @@ export default function ChecklistPage() {
           as jitter, and anything that animates after load (expanding a section,
           flipping a status) is deliberately instant: in an instrument, animated
           feedback reads as latency. `--reveal-index` sets the cascade. */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-[86rem] mx-auto px-6 py-7">
         <div className="mb-6 reveal" style={{ "--reveal-index": 0 } as React.CSSProperties}>
           <h1 className="font-display text-2xl font-bold text-ink mb-2">
             Veeam Kasten readiness, from proof of concept to operating maturity
@@ -182,21 +184,21 @@ export default function ChecklistPage() {
           {/* Both files ship in public/ so the links resolve in a self-hosted or
               air-gapped deployment rather than pointing at an intranet. */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">Reference</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Reference</span>
             <a
               href="/kasten-resilience-playbook.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-medium text-brand-700 hover:underline"
             >
-              The Kasten Resilience Playbook (PDF) ↗
+              The Kasten Resilience Playbook (PDF) <ExternalLinkIcon />
             </a>
             <a
               href="/kasten-maturity-self-assessment.xlsx"
               download
               className="text-xs font-medium text-brand-700 hover:underline"
             >
-              Maturity Self-Assessment workbook (XLSX) ↓
+              Maturity Self-Assessment workbook (XLSX) <DownloadIcon />
             </a>
           </div>
         </div>
@@ -240,10 +242,16 @@ export default function ChecklistPage() {
           </div>
         </div>
 
-        <div className="reveal" style={{ "--reveal-index": 2 } as React.CSSProperties}>
-          <StageNav active={activeStage} statuses={statuses} onSelect={setActiveStage} />
-          <StageHeader stageId={activeStage} statuses={statuses} />
-        </div>
+        {/* Two columns from `lg` up: sticky rail plus content. Below that the
+            rail is hidden and StageNav supplies navigation inline. */}
+        <div className="flex gap-6 items-start">
+          <Sidebar activeStage={activeStage} statuses={statuses} onSelect={setActiveStage} />
+
+          <div className="flex-1 min-w-0">
+            <div className="reveal" style={{ "--reveal-index": 2 } as React.CSSProperties}>
+              <StageNav active={activeStage} statuses={statuses} onSelect={setActiveStage} />
+              <StageHeader stageId={activeStage} statuses={statuses} />
+            </div>
 
         <div className="space-y-5 reveal" style={{ "--reveal-index": 3 } as React.CSSProperties}>
           {stage.sections.map(section => (
@@ -294,7 +302,7 @@ export default function ChecklistPage() {
                       rel="noopener noreferrer"
                       className="text-xs font-medium text-brand-700 hover:underline shrink-0"
                     >
-                      KubeDiagrams ↗
+                      KubeDiagrams <ExternalLinkIcon />
                     </a>
                   </div>
                   <p className="text-[13px] text-ink-muted mb-4 leading-relaxed">
@@ -347,12 +355,14 @@ export default function ChecklistPage() {
                 </section>
               </div>
             )}
+            </div>
+          </div>
           </div>
         </div>
       </main>
 
       <footer className="mt-12 border-t border-line bg-surface">
-        <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-[86rem] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="text-xs text-ink-faint">
             &copy; {new Date().getFullYear()} Veeam Software. Assessment data stays in your browser — this app has no
             backend and no cluster access.

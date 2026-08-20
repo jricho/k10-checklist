@@ -133,10 +133,15 @@
   --color-surface-sunken: #f1f4f8;
   --color-line: #dbe2ea;
   --color-line-strong: #b7c2ce;
-  --color-ink: #151f29;
-  --color-ink-soft: #46535f;
-  --color-ink-muted: #586675;
-  --color-ink-faint: #697685;
+  /* Darkened one step across the board after review: the previous values met the
+     4.5:1 AA floor but were genuinely hard to read at the 11–12px this interface
+     uses for secondary text. AA is a floor, not a target — small text wants 6:1
+     or better in practice, and `ink-faint` was carrying the evidence line, which
+     is content rather than decoration. */
+  --color-ink: #101923; /* 17.72:1 */
+  --color-ink-soft: #3a4653; /* 9.63:1 */
+  --color-ink-muted: #4a5765; /* 7.39:1 */
+  --color-ink-faint: #5b6877; /* 5.69:1 — the lightest text permitted anywhere */
 
   /* --- Typography --------------------------------------------------------
      Display: Space Grotesk — geometric, engineered, slightly idiosyncratic.
@@ -257,6 +262,16 @@
     --color-amber-700: #f0c274;
     --color-amber-800: #f5d49a;
     --color-amber-900: #fae8c9;
+
+    /* Command-tag tints. Same tint/ink pairing rule as the brand ramp: the
+       kubectl and oc tags are ink-on-tint, so both halves must flip together or
+       the tag becomes unreadable in one theme. */
+    --color-ocean-50: #0c1c2e;
+    --color-ocean-500: #5fa3ee;
+    --color-ocean-700: #9cc8f6;
+    --color-teal-50: #08221f;
+    --color-teal-500: #3fb9ac;
+    --color-teal-700: #7fd6cb;
 
     --page-bg: #0b131b;
     --wash:

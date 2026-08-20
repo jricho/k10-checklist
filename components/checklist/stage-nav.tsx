@@ -2,6 +2,8 @@
 
 import { STAGES, type StageId, type StatusMap, progressForStage } from "../../lib/checklist-data";
 import { Panel } from "../ui/panel";
+import { GATE } from "./gate";
+import { ChevronRightIcon, Marker } from "../ui/icon";
 
 // The journey, as navigation.
 //
@@ -21,34 +23,6 @@ import { Panel } from "../ui/panel";
 // you where you are, which you already know, while the gate tells you whether you
 // can sign, which is the question.
 
-/**
- * Gate presentation.
- *
- * `amber-600` rather than `amber-500` for the fill: at #b8791a the amber
- * measures 3.63:1 against white text, which fails AA. #92610a is 5.33:1. The
- * most important status on the page is not the place to lose a contrast
- * argument.
- */
-const GATE = {
-  clear: {
-    badge: "bg-brand-700 text-white",
-    dot: "bg-brand-500",
-    short: "Gate clear",
-    label: () => "GATE CLEAR",
-  },
-  outstanding: {
-    badge: "bg-amber-600 text-white",
-    dot: "bg-amber-500",
-    short: "Blockers open",
-    label: (n: number) => `${n} BLOCKING OPEN`,
-  },
-  blocked: {
-    badge: "bg-red-600 text-white",
-    dot: "bg-red-500",
-    short: "Upstream blocked",
-    label: () => "UPSTREAM BLOCKED",
-  },
-} as const;
 
 export function StageNav({
   active,
@@ -60,7 +34,8 @@ export function StageNav({
   onSelect: (stage: StageId) => void;
 }) {
   return (
-    <nav aria-label="Journey stages" className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+    // Shown below `lg` only: from there up the sticky sidebar carries navigation.
+    <nav aria-label="Journey stages" className="lg:hidden grid grid-cols-2 gap-3 mb-5">
       {STAGES.map((stage, i) => {
         const p = progressForStage(stage.id, statuses);
         const isActive = stage.id === active;
@@ -86,7 +61,7 @@ export function StageNav({
             />
             <span className="block p-4 pt-[15px]">
               <span className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="font-mono text-2xs font-medium uppercase tracking-[0.14em] text-ink-faint">
+                <span className="font-mono text-2xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
                   Stage {i + 1}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-2xs font-semibold text-ink-muted">
@@ -101,7 +76,7 @@ export function StageNav({
               >
                 {stage.name}
               </span>
-              <span className="block text-2xs leading-snug text-ink-muted mb-2.5">
+              <span className="block text-xs leading-snug text-ink-muted mb-2.5">
                 {stage.strapline}
               </span>
               <span className="flex items-center gap-2">
@@ -144,13 +119,13 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
     <Panel className="mb-5">
       <div className="px-5 py-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
         <div className="flex-1 min-w-0">
-          <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-1.5">
+          <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-1.5">
             {stage.roadmapPhase}
           </div>
           <h2 className="font-display text-xl font-semibold text-ink mb-2">{stage.name}</h2>
           <p className="text-sm text-ink-muted max-w-3xl leading-relaxed">{stage.goal}</p>
           {stage.playbookRefs && stage.playbookRefs.length > 0 && (
-            <p className="text-2xs text-ink-faint mt-2.5 leading-relaxed">
+            <p className="text-xs text-ink-muted mt-2.5 leading-relaxed">
               Drawn from{" "}
               <a
                 href="/kasten-resilience-playbook.pdf"
@@ -166,53 +141,54 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
         </div>
 
         <div className="shrink-0 lg:text-right">
+          {/* The gate badge lives in the sticky sidebar from `lg` up, so it is
+              always on screen; repeating it here would be two copies of the
+              loudest element. Below `lg` there is no sidebar, so it stays. */}
           <div
-            className={`inline-block rounded-lg px-4 py-2.5 font-display text-lg font-bold tracking-wide ${gate.badge}`}
+            className={`lg:hidden inline-block rounded-lg px-4 py-2.5 font-display text-lg font-bold tracking-wide ${gate.badge}`}
           >
             {gate.label(p.blockersOutstanding.length)}
           </div>
           <dl className="mt-3 flex lg:justify-end gap-x-4 gap-y-1 flex-wrap text-2xs">
             <div className="flex items-center gap-1">
-              <dt className="text-ink-faint">Verified</dt>
+              <dt className="text-ink-muted">Verified</dt>
               <dd className="font-semibold tabular-nums text-ink">{p.passed}</dd>
             </div>
             <div className="flex items-center gap-1">
-              <dt className="text-ink-faint">Failed</dt>
+              <dt className="text-ink-muted">Failed</dt>
               <dd className={`font-semibold tabular-nums ${p.failed ? "text-red-700" : "text-ink"}`}>
                 {p.failed}
               </dd>
             </div>
             <div className="flex items-center gap-1">
-              <dt className="text-ink-faint">Pending</dt>
+              <dt className="text-ink-muted">Pending</dt>
               <dd className="font-semibold tabular-nums text-ink">{p.pending}</dd>
             </div>
             <div className="flex items-center gap-1">
-              <dt className="text-ink-faint">N/A</dt>
+              <dt className="text-ink-muted">N/A</dt>
               <dd className="font-semibold tabular-nums text-ink">{p.na}</dd>
             </div>
           </dl>
-          <p className="text-2xs text-ink-faint mt-1.5">{stage.maturityTarget}</p>
+          <p className="text-xs text-ink-muted mt-1.5">{stage.maturityTarget}</p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-x-8 gap-y-5 px-5 py-4 border-t border-line bg-surface-sunken">
         <div>
-          <h3 className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-2">
+          <h3 className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-2">
             Exit criteria
           </h3>
           <ul className="space-y-1.5">
             {stage.exitCriteria.map(c => (
               <li key={c} className="flex gap-2 text-xs text-ink-muted leading-relaxed">
-                <span aria-hidden="true" className="text-brand-600 font-bold shrink-0">
-                  ›
-                </span>
+                <ChevronRightIcon className="text-brand-600 mt-[0.15em]" />
                 {c}
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <h3 className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-2">
+          <h3 className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted mb-2">
             {p.gate === "clear" ? "Blocking items" : "Outstanding blocking items"}
           </h3>
           {p.upstreamBlockers.length > 0 && (
@@ -229,9 +205,7 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
             <ul className="space-y-1.5">
               {p.blockersOutstanding.map(item => (
                 <li key={item.id} className="flex gap-2 text-xs text-ink-muted leading-relaxed">
-                  <span aria-hidden="true" className="text-red-500 shrink-0">
-                    •
-                  </span>
+                  <Marker className="bg-red-500" />
                   {item.label}
                 </li>
               ))}

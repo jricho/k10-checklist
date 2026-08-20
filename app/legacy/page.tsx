@@ -435,7 +435,7 @@ export default function ChecklistPage() {
             href="/"
             className="text-sm font-semibold text-[#219150] hover:underline shrink-0"
           >
-            Go to the current checklist →
+            Go to the current checklist
           </Link>
         </div>
 

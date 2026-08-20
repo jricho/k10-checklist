@@ -48,18 +48,26 @@ export function CommandBlock({
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   const [wrap, setWrap] = useState(true);
 
+  // The binary tag. Previously 10px sans in a pale pill, which was the least
+  // readable text on the page and also the most consequential: it is the only
+  // thing telling you whether the block below is a kubectl or an oc command.
+  //
+  // Now 12px, mono (it names a binary, so it should look like one), semibold,
+  // and on a tint with its ink at 7:1 or better. `tool` moved off Tailwind's
+  // default purple, which was undefined in the theme and so did not flip in dark
+  // mode.
   const badge =
     tone === "oc"
-      ? "bg-red-100 text-red-700"
+      ? "bg-red-50 text-red-700 border-red-200"
       : tone === "tool"
-        ? "bg-purple-100 text-purple-700"
-        : "bg-surface-sunken text-ink-muted border border-line";
+        ? "bg-teal-50 text-teal-700 border-teal-500/30"
+        : "bg-ocean-50 text-ocean-700 border-ocean-500/30";
 
   return (
     <div className="group relative">
       {label && (
         <span
-          className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-sans font-semibold mb-1 ${badge}`}
+          className={`inline-block rounded-md border px-2 py-[3px] text-xs font-mono font-semibold tracking-tight mb-1.5 ${badge}`}
         >
           {label}
         </span>
