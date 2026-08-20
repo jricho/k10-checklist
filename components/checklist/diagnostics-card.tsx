@@ -92,15 +92,15 @@ export function DiagnosticsCard({
   }, []);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-base font-semibold text-gray-900">Diagnostic captures</h2>
         {latestVersion && (
           <span
             title="Latest Veeam Kasten release, from charts.kasten.io"
-            className="inline-flex items-center gap-1.5 bg-[#219150]/10 text-[#176b3a] text-[10px] font-semibold rounded-full px-2 py-1 shrink-0"
+            className="inline-flex items-center gap-1.5 bg-brand-500/10 text-brand-800 text-[10px] font-semibold rounded-full px-2 py-1 shrink-0"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#219150]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-700" />
             Latest v{latestVersion}
           </span>
         )}
@@ -128,7 +128,7 @@ export function DiagnosticsCard({
                   <code className="bg-gray-100 rounded px-1">| tee {capture.key}.txt</code> and load the file.
                 </span>
                 <div className="flex items-center gap-3">
-                  <label className="text-[11px] font-medium text-[#219150] hover:underline cursor-pointer">
+                  <label className="text-[11px] font-medium text-brand-700 hover:underline cursor-pointer">
                     Load from file
                     <input
                       type="file"
@@ -164,7 +164,7 @@ export function DiagnosticsCard({
                 onChange={e => onChange(capture.key, e.target.value)}
                 spellCheck={false}
                 placeholder="Paste the output here"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[11px] font-mono text-gray-800 leading-snug min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[11px] font-mono text-gray-800 leading-snug min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
               />
               {value && (
                 <div className="text-[10px] text-gray-400 mt-1">

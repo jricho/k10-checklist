@@ -25,7 +25,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
     scored.length > 0 ? scored.reduce((n, e) => n + e.evidencedLevel, 0) / scored.length : 0;
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-base font-semibold text-gray-900">Maturity signals observed</h2>
         <div className="flex flex-col items-end gap-1 shrink-0">
@@ -36,7 +36,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
           <a
             href="/kasten-maturity-self-assessment.xlsx"
             download
-            className="text-xs font-semibold text-[#219150] hover:underline"
+            className="text-xs font-semibold text-brand-700 hover:underline"
           >
             Download the workbook (.xlsx) ↓
           </a>
@@ -70,7 +70,11 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
                   <span
                     key={l}
                     className={`h-1.5 w-6 rounded-full ${
-                      l <= ev.evidencedLevel ? "bg-[#219150]" : "bg-gray-200"
+                      // brand-600 rather than the raw #00b356 accent: the
+                      // brand green measures 2.46:1 against this track, below
+                      // the 3:1 floor for a non-text indicator. brand-600 keeps
+                      // the energy at 4.08:1.
+                      l <= ev.evidencedLevel ? "bg-brand-600" : "bg-gray-200"
                     }`}
                   />
                 ))}

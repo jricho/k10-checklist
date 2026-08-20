@@ -96,7 +96,7 @@ function ItemRow({
               <span
                 key={`${dim}-${level}`}
                 title={`Evidence for Level ${level} of ${DIMENSIONS[dim].name} in the Kasten Maturity Model`}
-                className="text-[10px] font-medium text-[#176b3a] bg-[#219150]/10 rounded-full px-2 py-0.5"
+                className="text-[10px] font-medium text-brand-800 bg-brand-500/10 rounded-full px-2 py-0.5"
               >
                 {DIMENSIONS[dim].short} · L{level}
               </span>
@@ -107,7 +107,7 @@ function ItemRow({
                 href={d.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] font-medium text-[#219150] hover:underline"
+                className="text-[10px] font-medium text-brand-700 hover:underline"
               >
                 {d.label} ↗
               </a>
@@ -116,7 +116,7 @@ function ItemRow({
               type="button"
               onClick={() => setOpen(v => !v)}
               aria-expanded={open}
-              className="text-[10px] font-semibold text-gray-500 hover:text-[#219150]"
+              className="text-[10px] font-semibold text-gray-500 hover:text-brand-700"
             >
               {open ? "Hide" : item.cmd ? "Verify & note" : "Add note"}
             </button>
@@ -152,8 +152,8 @@ function ItemRow({
               value={note}
               onChange={e => onNote(e.target.value)}
               rows={2}
-              className={`w-full border rounded-lg px-3 py-2 text-[12px] text-gray-800 resize-y focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent ${
-                needsNote && !note.trim() ? "border-amber-400 bg-amber-50/40" : "border-gray-300 bg-white"
+              className={`w-full border rounded-lg px-3 py-2 text-[12px] text-gray-800 resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent ${
+                needsNote && !note.trim() ? "border-amber-400 bg-amber-50/40" : "border-gray-300 bg-surface"
               }`}
               placeholder={
                 needsNote
@@ -193,13 +193,13 @@ export function SectionCard({
   ).length;
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       <h3>
         <button
           type="button"
           onClick={() => setOpen(v => !v)}
           aria-expanded={open}
-          className="w-full bg-[#219150] hover:bg-[#1c7d44] transition-colors px-5 py-3 flex items-center justify-between gap-3 text-left"
+          className="w-full bg-brand-700 hover:bg-brand-800 transition-colors px-5 py-3 flex items-center justify-between gap-3 text-left"
         >
           <span className="text-sm font-bold text-white uppercase tracking-wide">{section.title}</span>
           <span className="flex items-center gap-2 shrink-0">

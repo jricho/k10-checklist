@@ -14,6 +14,9 @@ import { STAGES, type StageId, type StatusMap, progressForStage } from "../../li
 // coming, and an established customer may start at Day-2. What is gated is the
 // claim of readiness, not access to the questions.
 
+// `bg-white` here is literal white, not the surface token: these sit on the
+// brand-green active card, so they must stay light in dark mode exactly as
+// `text-white` does.
 const GATE_STYLES = {
   clear: { dot: "bg-white", text: "Gate clear" },
   outstanding: { dot: "bg-amber-300", text: "Blockers open" },
@@ -43,8 +46,8 @@ export function StageNav({
             aria-current={isActive ? "step" : undefined}
             className={`text-left rounded-xl border p-4 transition-all ${
               isActive
-                ? "bg-[#219150] border-[#219150] text-white shadow-md"
-                : "bg-white border-gray-200 hover:border-[#219150]/50 hover:shadow-sm"
+                ? "bg-brand-700 border-brand-600 text-white shadow-md"
+                : "bg-surface border-gray-200 hover:border-brand-600/50 hover:shadow-sm"
             }`}
           >
             <div className="flex items-center justify-between gap-2 mb-1">
@@ -63,7 +66,7 @@ export function StageNav({
                 <span className={`w-1.5 h-1.5 rounded-full ${isActive ? gate.dot : ""} ${
                   !isActive
                     ? p.gate === "clear"
-                      ? "bg-[#219150]"
+                      ? "bg-brand-700"
                       : p.gate === "outstanding"
                         ? "bg-amber-500"
                         : "bg-red-500"
@@ -81,7 +84,7 @@ export function StageNav({
             <div className="flex items-center gap-2">
               <div className={`h-1.5 flex-1 rounded-full overflow-hidden ${isActive ? "bg-white/25" : "bg-gray-100"}`}>
                 <div
-                  className={`h-full rounded-full ${isActive ? "bg-white" : "bg-[#219150]"}`}
+                  className={`h-full rounded-full ${isActive ? "bg-white" : "bg-brand-600"}`}
                   style={{ width: `${p.percent}%` }}
                 />
               </div>
@@ -110,7 +113,7 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
   const p = progressForStage(stageId, statuses);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+    <div className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
         <div className="flex-1">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
@@ -125,7 +128,7 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
                 href="/kasten-resilience-playbook.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-[#219150] hover:underline"
+                className="font-medium text-brand-700 hover:underline"
               >
                 The Kasten Resilience Playbook
               </a>{" "}
@@ -137,7 +140,7 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
           <div
             className={`inline-block px-4 py-2 rounded-lg text-sm font-bold ${
               p.gate === "clear"
-                ? "bg-[#219150] text-white"
+                ? "bg-brand-700 text-white"
                 : p.gate === "outstanding"
                   ? "bg-amber-500 text-white"
                   : "bg-red-600 text-white"
@@ -162,7 +165,7 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
           <ul className="space-y-1.5">
             {stage.exitCriteria.map(c => (
               <li key={c} className="flex gap-2 text-[13px] text-gray-600">
-                <span className="text-[#219150] mt-0.5 shrink-0">›</span>
+                <span className="text-brand-700 mt-0.5 shrink-0">›</span>
                 {c}
               </li>
             ))}

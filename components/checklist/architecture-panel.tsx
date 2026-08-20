@@ -51,7 +51,7 @@ function TierRow({
   const withinTarget = rto !== null && measured !== null && measured <= rto;
 
   const cell =
-    "w-full border border-gray-300 rounded-md px-2 py-1.5 text-[12px] text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent";
+    "w-full border border-gray-300 rounded-md px-2 py-1.5 text-[12px] text-gray-900 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent";
 
   return (
     <div className="grid grid-cols-12 gap-2 items-start py-3 border-b border-gray-100 last:border-b-0">
@@ -138,7 +138,7 @@ function TierRow({
             </span>
           )}
           {withinTarget && (
-            <span title="Within the RTO target" className="text-[#219150] text-sm font-bold shrink-0">
+            <span title="Within the RTO target" className="text-brand-700 text-sm font-bold shrink-0">
               ✓
             </span>
           )}
@@ -190,14 +190,14 @@ export function ArchitecturePanel({
   const soft = warnings.filter(w => w.severity === "info");
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-base font-semibold text-gray-900">Workload tiers &amp; DR topology</h2>
         <a
           href="/kasten-resilience-playbook.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-medium text-[#219150] hover:underline shrink-0"
+          className="text-xs font-medium text-brand-700 hover:underline shrink-0"
         >
           Playbook §4.3, §4.7 ↗
         </a>
@@ -236,7 +236,7 @@ export function ArchitecturePanel({
       <button
         type="button"
         onClick={onAddTier}
-        className="mt-3 text-xs font-semibold text-[#219150] hover:underline"
+        className="mt-3 text-xs font-semibold text-brand-700 hover:underline"
       >
         + Add a tier
       </button>
@@ -272,7 +272,7 @@ export function ArchitecturePanel({
           value={notes}
           onChange={e => onNotesChange(e.target.value)}
           placeholder="e.g. Production RTO agreed with the trading desk, Feb 2026. Edge sites have a 4h connectivity window overnight, which caps achievable RPO."
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 min-h-[72px] resize-y focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 min-h-[72px] resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
         />
       </div>
 

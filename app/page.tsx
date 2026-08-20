@@ -80,8 +80,8 @@ export default function ChecklistPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8]">
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
+    <div className="min-h-screen">
+      <header className="bg-surface border-b border-gray-200 shadow-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <Image
@@ -106,7 +106,7 @@ export default function ChecklistPage() {
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
-              className="text-xs font-semibold text-gray-600 hover:text-[#219150] px-2 py-2"
+              className="text-xs font-semibold text-gray-600 hover:text-brand-700 px-2 py-2"
             >
               Open
             </button>
@@ -118,7 +118,7 @@ export default function ChecklistPage() {
                   ctrl.exportJson(),
                 )
               }
-              className="text-xs font-semibold text-gray-600 hover:text-[#219150] px-2 py-2"
+              className="text-xs font-semibold text-gray-600 hover:text-brand-700 px-2 py-2"
             >
               Save
             </button>
@@ -130,7 +130,7 @@ export default function ChecklistPage() {
               value={exportScope}
               onChange={e => setExportScope(e.target.value as ExportScope)}
               title="How much of the journey the exported PDF covers"
-              className="text-xs font-medium text-gray-600 border border-gray-300 rounded-lg px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#219150]"
+              className="text-xs font-medium text-gray-600 border border-gray-300 rounded-lg px-2 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600"
             >
               {(Object.keys(EXPORT_SCOPE_LABELS) as ExportScope[]).map(key => (
                 <option key={key} value={key}>
@@ -142,7 +142,7 @@ export default function ChecklistPage() {
               type="button"
               onClick={handleExportPdf}
               disabled={exporting}
-              className="flex items-center gap-2 bg-[#219150] hover:bg-[#176b3a] disabled:opacity-60 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition-colors"
+              className="flex items-center gap-2 bg-brand-700 hover:bg-brand-800 disabled:opacity-60 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition-colors"
             >
               <svg
                 className="h-4 w-4"
@@ -164,9 +164,14 @@ export default function ChecklistPage() {
         </div>
       </header>
 
+      {/* One staggered reveal on load, applied to the five top-level regions
+          only — see globals.css. Per-item animation across 112 rows would read
+          as jitter, and anything that animates after load (expanding a section,
+          flipping a status) is deliberately instant: in an instrument, animated
+          feedback reads as latency. `--reveal-index` sets the cascade. */}
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
+        <div className="mb-6 reveal" style={{ "--reveal-index": 0 } as React.CSSProperties}>
+          <h1 className="font-display text-2xl font-bold text-gray-900 mb-2">
             Veeam Kasten readiness, from proof of concept to operating maturity
           </h1>
           <p className="text-gray-500 text-sm max-w-3xl leading-relaxed">
@@ -182,14 +187,14 @@ export default function ChecklistPage() {
               href="/kasten-resilience-playbook.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-[#219150] hover:underline"
+              className="text-xs font-medium text-brand-700 hover:underline"
             >
               The Kasten Resilience Playbook (PDF) ↗
             </a>
             <a
               href="/kasten-maturity-self-assessment.xlsx"
               download
-              className="text-xs font-medium text-[#219150] hover:underline"
+              className="text-xs font-medium text-brand-700 hover:underline"
             >
               Maturity Self-Assessment workbook (XLSX) ↓
             </a>
@@ -206,7 +211,10 @@ export default function ChecklistPage() {
         )}
 
         {/* Engagement details */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+        <div
+          className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6 mb-6 reveal"
+          style={{ "--reveal-index": 1 } as React.CSSProperties}
+        >
           <h2 className="text-xs font-semibold text-gray-500 mb-4 uppercase tracking-wide">Assessment details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <Field label="Project" value={meta.project} onChange={v => setMeta("project", v)} placeholder="Customer or project name" />
@@ -220,7 +228,7 @@ export default function ChecklistPage() {
               a two-hour RTO and an export-only topology are incompatible. */}
           <p className="text-[13px] text-gray-500">
             RPO and RTO targets are recorded per workload tier in{" "}
-            <a href="#architecture" className="font-medium text-[#219150] hover:underline">
+            <a href="#architecture" className="font-medium text-brand-700 hover:underline">
               Workload tiers &amp; DR topology
             </a>{" "}
             below. Every disaster recovery item is assessed against them.
@@ -232,10 +240,12 @@ export default function ChecklistPage() {
           </div>
         </div>
 
-        <StageNav active={activeStage} statuses={statuses} onSelect={setActiveStage} />
-        <StageHeader stageId={activeStage} statuses={statuses} />
+        <div className="reveal" style={{ "--reveal-index": 2 } as React.CSSProperties}>
+          <StageNav active={activeStage} statuses={statuses} onSelect={setActiveStage} />
+          <StageHeader stageId={activeStage} statuses={statuses} />
+        </div>
 
-        <div className="space-y-5">
+        <div className="space-y-5 reveal" style={{ "--reveal-index": 3 } as React.CSSProperties}>
           {stage.sections.map(section => (
             <SectionCard
               key={section.id}
@@ -248,7 +258,7 @@ export default function ChecklistPage() {
           ))}
         </div>
 
-        <div className="mt-8 space-y-6">
+        <div className="mt-8 space-y-6 reveal" style={{ "--reveal-index": 4 } as React.CSSProperties}>
           <div id="architecture" className="scroll-mt-20">
             <ArchitecturePanel
               tiers={assessment.tiers}
@@ -267,7 +277,7 @@ export default function ChecklistPage() {
               type="button"
               onClick={() => setShowTools(v => !v)}
               aria-expanded={showTools}
-              className="text-sm font-semibold text-[#219150] hover:underline mb-3"
+              className="text-sm font-semibold text-brand-700 hover:underline mb-3"
             >
               {showTools ? "Hide" : "Show"} diagnostic captures & architecture diagram
             </button>
@@ -275,14 +285,14 @@ export default function ChecklistPage() {
               <div className="space-y-6">
                 <DiagnosticsCard outputs={outputs} onChange={setOutput} />
 
-                <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
                   <div className="flex items-start justify-between gap-4 mb-1">
                     <h2 className="text-base font-semibold text-gray-900">Cluster architecture diagram</h2>
                     <a
                       href="https://github.com/philippemerle/KubeDiagrams"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-medium text-[#219150] hover:underline shrink-0"
+                      className="text-xs font-medium text-brand-700 hover:underline shrink-0"
                     >
                       KubeDiagrams ↗
                     </a>
@@ -297,7 +307,7 @@ export default function ChecklistPage() {
                     assessment itself.
                   </p>
                   {!diagram ? (
-                    <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg px-6 py-8 cursor-pointer hover:border-[#219150] hover:bg-gray-50/60 transition-colors">
+                    <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg px-6 py-8 cursor-pointer hover:border-brand-600 hover:bg-gray-50/60 transition-colors">
                       <span className="text-sm font-medium text-gray-700">Click to upload diagram</span>
                       <span className="text-xs text-gray-400 mt-1">PNG or JPEG</span>
                       <input
@@ -341,7 +351,7 @@ export default function ChecklistPage() {
         </div>
       </main>
 
-      <footer className="mt-12 border-t border-gray-200 bg-white">
+      <footer className="mt-12 border-t border-gray-200 bg-surface">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="text-xs text-gray-400">
             &copy; {new Date().getFullYear()} Veeam Software. Assessment data stays in your browser — this app has no
@@ -357,7 +367,7 @@ export default function ChecklistPage() {
               href="https://docs.kasten.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-[#219150] hover:underline"
+              className="text-xs text-brand-700 hover:underline"
             >
               docs.kasten.io
             </a>
@@ -393,7 +403,7 @@ function Field({
         value={value}
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#219150] focus:border-transparent"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
       />
     </div>
   );

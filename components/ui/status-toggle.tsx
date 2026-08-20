@@ -21,7 +21,7 @@ const OPTIONS: { value: ItemStatus; label: string; title: string }[] = [
 ];
 
 const STYLES: Record<ItemStatus, string> = {
-  pass: "bg-[#219150] text-white border-[#219150]",
+  pass: "bg-brand-700 text-white border-brand-600",
   fail: "bg-red-600 text-white border-red-600",
   na: "bg-gray-400 text-white border-gray-400",
   pending: "",
@@ -54,8 +54,8 @@ export function StatusToggle({
             // Clicking the active option clears it back to pending, so a
             // mis-click is recoverable without a separate reset control.
             onClick={() => onChange(active ? "pending" : opt.value)}
-            className={`px-2.5 py-1 text-[11px] font-semibold transition-colors border-r last:border-r-0 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#219150] ${
-              active ? STYLES[opt.value] : "bg-white text-gray-500 hover:bg-gray-50"
+            className={`px-2.5 py-1 text-[11px] font-semibold transition-colors border-r last:border-r-0 border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-600 ${
+              active ? STYLES[opt.value] : "bg-surface text-gray-500 hover:bg-gray-50"
             }`}
           >
             {opt.label}
