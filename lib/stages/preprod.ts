@@ -17,11 +17,11 @@ export const PREPROD_STAGE: Stage = {
   strapline: "Policy-driven, application-consistent, offsite and immutable",
   roadmapPhase: "Roadmap Phase 2 — Harden the Basics (Days 15–45, M4–M6)",
   playbookRefs: [
-    "§2.3 Level 3 descriptors",
-    "§3.3 Policy governance, credential hygiene",
-    "§4.2 Core components",
-    "§4.5 Non-functional considerations",
-    "§5 Roadmap Phase 2",
+    "2.3 Level 3 descriptors",
+    "3.3 Policy governance, credential hygiene",
+    "4.2 Core components",
+    "4.5 Non-functional considerations",
+    "5 Roadmap Phase 2",
   ],
   goal:
     "Turn a proven manual restore into automatic coverage: selector-driven policies, quiesced databases, an immutable offsite copy, and restores proven across namespace and cluster boundaries.",

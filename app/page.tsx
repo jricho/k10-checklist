@@ -16,8 +16,8 @@ import {
   EXPORT_SCOPE_LABELS,
   type ExportScope,
 } from "../lib/export-pdf";
-import { STAGES_BY_ID, overallProgress } from "../lib/checklist-data";
-import { DownloadIcon, ExternalLinkIcon } from "../components/ui/icon";
+import { STAGES, STAGES_BY_ID, overallProgress } from "../lib/checklist-data";
+import { ChevronRightIcon, DownloadIcon, ExternalLinkIcon } from "../components/ui/icon";
 
 // The page is now composition only: state comes from `useAssessment`, structure
 // from `lib/checklist-data`, output from `lib/export-pdf`. The original version
@@ -172,18 +172,58 @@ export default function ChecklistPage() {
           flipping a status) is deliberately instant: in an instrument, animated
           feedback reads as latency. `--reveal-index` sets the cascade. */}
       <main className="max-w-[86rem] mx-auto px-6 py-7">
-        <div className="mb-6 reveal" style={{ "--reveal-index": 0 } as React.CSSProperties}>
-          <h1 className="font-display text-2xl font-bold text-ink mb-2">
-            Veeam Kasten readiness, from proof of concept to operating maturity
-          </h1>
-          <p className="text-ink-muted text-sm max-w-3xl leading-relaxed">
-            Four stages, each with its own gate. Work through them in order: prove recovery works, make protection
-            automatic and immutable, make failure visible and recovery executable, then sustain it. Export the PDF at
-            each gate for the change record, and carry the maturity signals into the self-assessment workbook.
+        {/* Masthead.
+            The previous version read as four clipped imperatives — "Prove that
+            recovery works. Make protection automatic…" — which is manifesto
+            register, not the register of an artefact somebody signs. It was also
+            doing the stage headers' job: explaining the method rather than
+            identifying the document.
+
+            So: an eyebrow that says what this is, a title, one measured sentence
+            of scope, and the stage sequence as a named progression rather than a
+            chain of instructions. The method belongs in each stage header, where
+            it already lives alongside that stage's exit criteria. */}
+        <header className="mb-6 reveal" style={{ "--reveal-index": 0 } as React.CSSProperties}>
+          <p className="font-mono text-2xs font-semibold uppercase tracking-[0.16em] text-ink-muted mb-2">
+            Veeam Kasten · Readiness assessment
           </p>
+          <h1 className="font-display text-2xl font-bold text-ink mb-3 max-w-[24ch] sm:max-w-none">
+            Readiness and operating maturity
+          </h1>
+          <p className="text-base text-ink-soft max-w-[70ch] leading-relaxed">
+            A staged verification of a Veeam Kasten deployment — from proof of concept, through production readiness,
+            to day-2 operating maturity — evidenced against a live cluster and exported as a signable record.
+          </p>
+
+          {/* The four stages as a progression, generated from the data so the
+              masthead cannot drift from the stages themselves. Names only: the
+              sidebar carries the counts and each stage header carries its goal,
+              so repeating either here would be noise. */}
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 mt-4">
+            {STAGES.map((s, i) => (
+              <li key={s.id} className="flex items-center gap-2">
+                {i > 0 && (
+                  <ChevronRightIcon className="text-line-strong" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveStage(s.id)}
+                  className={`inline-flex items-baseline gap-1.5 rounded-md px-2 py-1 text-xs font-semibold transition-colors ${
+                    s.id === activeStage
+                      ? "bg-brand-50 text-brand-900"
+                      : "text-ink-muted hover:bg-surface-sunken hover:text-ink"
+                  }`}
+                >
+                  <span className="font-mono text-2xs text-ink-faint">{i + 1}</span>
+                  {s.name}
+                </button>
+              </li>
+            ))}
+          </ol>
+
           {/* Both files ship in public/ so the links resolve in a self-hosted or
               air-gapped deployment rather than pointing at an intranet. */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 pt-4 border-t border-line">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Reference</span>
             <a
               href="/kasten-resilience-playbook.pdf"
@@ -201,7 +241,7 @@ export default function ChecklistPage() {
               Maturity Self-Assessment workbook (XLSX) <DownloadIcon />
             </a>
           </div>
-        </div>
+        </header>
 
         {ctrl.persistError && (
           <div
@@ -219,8 +259,7 @@ export default function ChecklistPage() {
         >
           <h2 className="text-xs font-semibold text-ink-muted mb-4 uppercase tracking-wide">Assessment details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <Field label="Project" value={meta.project} onChange={v => setMeta("project", v)} placeholder="Customer or project name" />
-            <Field label="Environment" value={meta.environment} onChange={v => setMeta("environment", v)} placeholder="e.g. Production, Staging" />
+            <Field label="Project name" value={meta.project} onChange={v => setMeta("project", v)} placeholder="Project name" />
             <Field label="Cluster" value={meta.clusterName} onChange={v => setMeta("clusterName", v)} placeholder="Cluster name or context" />
             <Field label="Assessor" value={meta.assessor} onChange={v => setMeta("assessor", v)} placeholder="Who performed this" />
             <Field label="Date" value={meta.date} onChange={v => setMeta("date", v)} type="date" />

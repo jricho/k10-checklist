@@ -18,11 +18,11 @@ export const GOLIVE_STAGE: Stage = {
   strapline: "Observable, alerting, DR designed and signed off",
   roadmapPhase: "Roadmap Phase 3 — Optimize & Harden (Days 46–75, M7–M9) + cutover",
   playbookRefs: [
-    "§2.3 Level 4 descriptors",
-    "§3.3 Incident response integration",
-    "§4.3 Disaster recovery topology",
-    "§4.7 Disaster recovery patterns",
-    "§5 Roadmap Phase 3",
+    "2.3 Level 4 descriptors",
+    "3.3 Incident response integration",
+    "4.3 Disaster recovery topology",
+    "4.7 Disaster recovery patterns",
+    "5 Roadmap Phase 3",
   ],
   goal:
     "Make failure visible, make recovery executable by someone who did not design it, and obtain sign-off against measured numbers rather than intentions.",

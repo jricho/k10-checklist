@@ -157,7 +157,7 @@
               paste into a production shell, so glyph ambiguity is a correctness
               bug, not a taste question.
 
-     PENDING BRAND CONFIRMATION. See CLAUDE.md § Decisions still needed. Swapping
+     PENDING BRAND CONFIRMATION. See CLAUDE.md section  Decisions still needed. Swapping
      the face is one line in app/layout.tsx because nothing references a family
      name directly. */
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;

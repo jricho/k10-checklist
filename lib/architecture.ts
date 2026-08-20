@@ -1,6 +1,6 @@
 // Reference architecture: workload tiers and DR topology.
 //
-// From §4.3, §4.5 and §4.7 of The Kasten Resilience Playbook. The playbook's
+// From section 4.3, section 4.5 and section 4.7 of The Kasten Resilience Playbook. The playbook's
 // position, which this module encodes, is that RPO/RTO requirements per workload
 // tier drive the architecture rather than the other way around — so the tier
 // table comes first and the topology choice is made against it, with the
@@ -171,7 +171,7 @@ export function tierWarnings(tiers: WorkloadTier[]): TierWarning[] {
       out.push({
         tierId: tier.id,
         severity: "warn",
-        text: `${label}: ${info.label} implies an RTO of ${info.rtoRange}, but the target is ${formatMinutes(rto)}. Either the topology needs to change or the commitment does (Playbook §4.7).`,
+        text: `${label}: ${info.label} implies an RTO of ${info.rtoRange}, but the target is ${formatMinutes(rto)}. Either the topology needs to change or the commitment does (Playbook section 4.7).`,
       });
     }
 

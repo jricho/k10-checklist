@@ -180,7 +180,7 @@ in `globals.css` gets finished, not deleted. Every component currently hardcodes
   on-screen chart needs rendering to canvas and embedding as a raster image, or a
   second hand-drawn version using jsPDF primitives. Decide which before building,
   because "it looks great on screen and is missing from the export" fails the
-  artefact test in §Constraints.
+  artefact test in section Constraints.
 - Prefer hand-rolled SVG over a charting dependency. Seven axes and five rings is
   trigonometry, not a library.
 

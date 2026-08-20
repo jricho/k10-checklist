@@ -8,7 +8,7 @@
 export type StageId = "poc" | "preprod" | "golive" | "day2";
 
 /**
- * The seven dimensions of the Kasten Maturity Model (Resilience Playbook §2.1).
+ * The seven dimensions of the Kasten Maturity Model (Resilience Playbook section 2.1).
  * Checklist items are tagged with the dimension(s) they provide evidence for so
  * the exported PDF can print "maturity signals observed" for transcription into
  * the companion self-assessment workbook.

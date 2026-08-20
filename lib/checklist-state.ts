@@ -36,7 +36,6 @@ export type OutputKey = "primer" | "cluster" | "policies" | "popeye";
 
 export interface AssessmentMeta {
   project: string;
-  environment: string;
   clusterName: string;
   date: string;
   assessor: string;
@@ -58,8 +57,8 @@ export interface Assessment {
   /** Which stage the UI is showing. Persisted so a reload returns you to your place. */
   activeStage: StageId;
   /**
-   * Workload tiers with their RPO/RTO targets and DR topology (Playbook §4.3,
-   * §4.7). Seeded with the playbook's three tiers; renameable and extensible,
+   * Workload tiers with their RPO/RTO targets and DR topology (Playbook section 4.3,
+   * section 4.7). Seeded with the playbook's three tiers; renameable and extensible,
    * because "Production" means different things in different estates.
    */
   tiers: WorkloadTier[];
@@ -75,7 +74,6 @@ export function emptyAssessment(): Assessment {
     version: ASSESSMENT_VERSION,
     meta: {
       project: "",
-      environment: "",
       clusterName: "",
       date: new Date().toISOString().slice(0, 10),
       assessor: "",

@@ -17,10 +17,10 @@ export const POC_STAGE: Stage = {
   strapline: "Prove recovery works here, on something representative",
   roadmapPhase: "Roadmap Phase 1 — Foundation (Days 1–14, M1–M3)",
   playbookRefs: [
-    "§2.3 Level 1–2 descriptors",
-    "§4.1 Architecture principles",
-    "§4.6 Data protection principles",
-    "§5 Roadmap Phase 1",
+    "2.3 Level 1–2 descriptors",
+    "4.1 Architecture principles",
+    "4.6 Data protection principles",
+    "5 Roadmap Phase 1",
   ],
   goal:
     "Demonstrate that a representative workload in this environment can be snapshotted, exported off-cluster, and restored — and record every gap found on the way.",

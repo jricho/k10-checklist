@@ -11,7 +11,7 @@ import {
 } from "../../lib/architecture";
 import { AlertIcon, CheckIcon, ExternalLinkIcon } from "../ui/icon";
 
-// Workload tiers and DR topology — Playbook §4.3, §4.7.
+// Workload tiers and DR topology — Playbook sections 4.3 and 4.7.
 //
 // The playbook's sequence is requirements first, architecture second. So this
 // panel reads left to right as that argument: name the tier, state what the
@@ -200,7 +200,7 @@ export function ArchitecturePanel({
           rel="noopener noreferrer"
           className="text-xs font-medium text-brand-700 hover:underline shrink-0"
         >
-          Playbook §4.3, §4.7 <ExternalLinkIcon />
+          Playbook sections 4.3, 4.7 <ExternalLinkIcon />
         </a>
       </div>
       <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">
@@ -279,7 +279,7 @@ export function ArchitecturePanel({
 
       <details className="mt-5">
         <summary className="text-xs font-semibold text-ink-muted cursor-pointer hover:text-ink-soft">
-          Topology reference (Playbook §4.7)
+          Topology reference (Playbook section 4.7)
         </summary>
         <div className="mt-3 space-y-3">
           {TOPOLOGY_ORDER.filter(k => k !== "undecided").map(key => {

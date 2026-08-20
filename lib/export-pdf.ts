@@ -312,7 +312,6 @@ export async function exportAssessmentPdf({
   );
 
   w.keyValue("Project", meta.project);
-  w.keyValue("Environment", meta.environment);
   w.keyValue("Cluster", meta.clusterName);
   w.keyValue("Assessor", meta.assessor);
   w.keyValue("Date", meta.date);

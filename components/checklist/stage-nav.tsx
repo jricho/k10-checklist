@@ -135,7 +135,7 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
               >
                 The Kasten Resilience Playbook
               </a>{" "}
-              — {stage.playbookRefs.join(" · ")}
+              — sections {stage.playbookRefs.join(" · ")}
             </p>
           )}
         </div>

@@ -19,12 +19,12 @@ export const DAY2_STAGE: Stage = {
   strapline: "Sustain and advance maturity — this stage never completes",
   roadmapPhase: "Roadmap Phase 4 — Prove Value (Days 76–100, M10–M12) and beyond",
   playbookRefs: [
-    "§2.3 Level 5 descriptors",
-    "§3.1 Operating cadence",
-    "§3.2 Roles and responsibilities",
-    "§3.3 Core operating practices",
-    "§5 Roadmap Phase 4",
-    "§6 Using the companion self-assessment",
+    "2.3 Level 5 descriptors",
+    "3.1 Operating cadence",
+    "3.2 Roles and responsibilities",
+    "3.3 Core operating practices",
+    "5 Roadmap Phase 4",
+    "6 Using the companion self-assessment",
   ],
   goal:
     "Keep recoverability true as the estate changes: a recurring cadence, drills that measure rather than reassure, and findings that change something.",

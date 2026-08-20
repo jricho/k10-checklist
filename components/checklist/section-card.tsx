@@ -174,7 +174,10 @@ export function SectionCard({
   notes,
   onStatus,
   onNote,
-  defaultOpen = true,
+  // Collapsed by default. A stage opens as a scannable list of section titles
+  // with their counts, so the reader chooses where to start rather than landing
+  // mid-way down eleven expanded items. The sidebar jump list mirrors it.
+  defaultOpen = false,
 }: {
   section: ChecklistSection;
   statuses: StatusMap;

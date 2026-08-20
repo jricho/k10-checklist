@@ -43,7 +43,7 @@ export function Panel({
  * Three levels of information in a fixed rhythm, so the eye learns the pattern
  * once and then skips straight to whichever level it wants:
  *
- *   eyebrow  — where this sits in the wider model (roadmap phase, playbook §)
+ *   eyebrow  — where this sits in the wider model (roadmap phase, playbook section)
  *   title    — what it is
  *   action   — the one thing you can do from here
  *   meta     — counts and state, right-aligned
