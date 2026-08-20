@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   TOPOLOGIES,
   TOPOLOGY_ORDER,
@@ -10,6 +11,7 @@ import {
   type WorkloadTier,
 } from "../../lib/architecture";
 import { AlertIcon, CheckIcon, ExternalLinkIcon } from "../ui/icon";
+import { Chip, Panel, PanelHeader } from "../ui/panel";
 
 // Workload tiers and DR topology — Playbook sections 4.3 and 4.7.
 //
@@ -190,19 +192,50 @@ export function ArchitecturePanel({
   const hard = warnings.filter(w => w.severity === "warn");
   const soft = warnings.filter(w => w.severity === "info");
 
+  // Collapsed by default, matching the checklist sections. The table is a
+  // six-column form that is revisited occasionally — at the start of a POC, and
+  // again when a drill produces a measured restore time — not something you read
+  // on every visit.
+  //
+  // The header therefore has to answer "is there anything here I need to look
+  // at" while shut: how many tiers are defined, how many still have no topology,
+  // and how many carry an unresolved warning. A collapsed panel that shows only
+  // its title makes the reader open it to find out there was nothing to see.
+  const [open, setOpen] = useState(false);
+  const undecided = tiers.filter(t => t.topology === "undecided").length;
+
   return (
-    <section className="bg-surface rounded-card border border-line shadow-card p-5">
-      <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="text-base font-semibold text-ink">Workload tiers &amp; DR topology</h2>
-        <a
-          href="/kasten-resilience-playbook.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium text-brand-700 hover:underline shrink-0"
-        >
-          Playbook sections 4.3, 4.7 <ExternalLinkIcon />
-        </a>
-      </div>
+    <Panel>
+      <PanelHeader
+        title="Workload tiers & DR topology"
+        onClick={() => setOpen(v => !v)}
+        expanded={open}
+        meta={
+          <>
+            {hard.length > 0 && (
+              <Chip tone="warn">
+                {hard.length} {hard.length === 1 ? "conflict" : "conflicts"}
+              </Chip>
+            )}
+            {undecided > 0 && <Chip tone="neutral">{undecided} without a topology</Chip>}
+            <Chip tone={undecided === 0 && hard.length === 0 ? "brand" : "neutral"}>
+              {tiers.length} {tiers.length === 1 ? "tier" : "tiers"}
+            </Chip>
+          </>
+        }
+        action={
+          <a
+            href="/kasten-resilience-playbook.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-brand-700 hover:underline"
+          >
+            Playbook 4.3, 4.7 <ExternalLinkIcon />
+          </a>
+        }
+      />
+      {!open ? null : (
+        <div className="px-5 py-4">
       <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">
         Requirements drive the architecture, not the other way around. Define what each tier can tolerate losing and how
         long it can be down, then choose the topology that can deliver it. Everything here prints on the cover of the
@@ -300,6 +333,8 @@ export function ArchitecturePanel({
           </p>
         </div>
       </details>
-    </section>
+        </div>
+      )}
+    </Panel>
   );
 }
