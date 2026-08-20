@@ -238,8 +238,13 @@ Full redesign in one pass, but land it in this order so each layer is checkable:
 1. **Typeface.** What is Veeam's canonical brand face, and is there an approved
    pairing for a technical surface rather than a marketing one? Geist is loaded
    but not applied, and the Arial override defeats both.
-2. **Neutral ramp.** Deep slate is specified — is there a Veeam-approved slate
-   scale, or should one be built and reviewed?
+2. ~~**Neutral ramp.**~~ **Resolved.** Ramp B chosen from a three-way comparison
+   rendered at `/design`: cool slate, mid-tones pushed darker. Every text token
+   clears 7:1 in light mode and 6.3:1 in dark — AAA rather than AA, because most
+   of this interface sits at 11–13px where the 4.5:1 floor passes a checker and
+   still tires a reader. Values and their measured ratios are in `globals.css`.
+   If the ramp is revisited, restore `app/design/` from git history rather than
+   comparing hex values in the abstract.
 3. **Pillar assignment.** Four pillars over 112 items will not partition
    cleanly — `restore-from-export` is arguably DR Validation and Infrastructure
    Integrity both. Single pillar per item, or multiple?

@@ -56,34 +56,39 @@
   --color-brand-900: #004a25;
 
   /* --- Slate neutrals ----------------------------------------------------
-     Overrides Tailwind's `gray`, so `text-gray-500` etc. pick these up.
-     gray-400 is 4.64:1 rather than the ~2.6:1 of Tailwind's default, because
-     this app uses it 41 times for small labels that carry meaning — captions,
-     units, counts. At the default value none of them met AA. */
-  --color-gray-50: #f7f9fb;
-  --color-gray-100: #eef2f6;
-  --color-gray-200: #dbe2ea; /* 1.31:1 — borders and fills only */
-  --color-gray-300: #b7c2ce; /* 1.81:1 — stronger border, decorative */
-  --color-gray-400: #697685; /* 4.64:1 — smallest text that still passes AA */
-  --color-gray-500: #586675; /* 5.88:1 */
-  --color-gray-600: #46535f; /* 7.89:1 */
-  --color-gray-700: #333f4b; /* 10.75:1 */
-  --color-gray-800: #222e3a; /* 13.82:1 */
-  --color-gray-900: #151f29; /* 16.67:1 */
-  --color-gray-950: #0b131b; /* 18.70:1 */
+     Ramp B, chosen from the /design comparison: same cool hue, mid-tones pushed
+     darker. Overrides Tailwind's `gray`, so `text-gray-500` etc. pick these up.
 
-  /* Same ramp under its real name, for new code. */
-  --color-slate-50: #f7f9fb;
-  --color-slate-100: #eef2f6;
-  --color-slate-200: #dbe2ea;
-  --color-slate-300: #b7c2ce;
-  --color-slate-400: #697685;
-  --color-slate-500: #586675;
-  --color-slate-600: #46535f;
-  --color-slate-700: #333f4b;
-  --color-slate-800: #222e3a;
-  --color-slate-900: #151f29;
-  --color-slate-950: #0b131b;
+     The deliberate departure from a conventional ramp is gray-400 at 6.18:1
+     rather than Tailwind's ~2.6:1. This app uses that step for small labels that
+     carry meaning — captions, units, counts — and at the default value none of
+     them met AA. The cost is less separation between 400 and 500; the benefit is
+     that no step in the ramp is unusable for text. */
+  --color-gray-50: #f5f8fa;
+  --color-gray-100: #e9eef3;
+  --color-gray-200: #d3dce5; /* 1.39:1 — borders and fills only */
+  --color-gray-300: #a7b4c2; /* 2.11:1 — stronger border, decorative */
+  --color-gray-400: #55636f; /* 6.18:1 — smallest text permitted */
+  --color-gray-500: #46535f; /* 7.89:1 */
+  --color-gray-600: #37434f; /* 10.10:1 */
+  --color-gray-700: #28323c; /* 13.03:1 */
+  --color-gray-800: #1b232c; /* 15.87:1 */
+  --color-gray-900: #111820; /* 17.87:1 */
+  --color-gray-950: #080d13; /* 19.49:1 */
+
+  /* Same ramp under its real name, for new code. Not inverted in dark mode —
+     use these for anything intrinsically dark, such as the command panes. */
+  --color-slate-50: #f5f8fa;
+  --color-slate-100: #e9eef3;
+  --color-slate-200: #d3dce5;
+  --color-slate-300: #a7b4c2;
+  --color-slate-400: #55636f;
+  --color-slate-500: #46535f;
+  --color-slate-600: #37434f;
+  --color-slate-700: #28323c;
+  --color-slate-800: #1b232c;
+  --color-slate-900: #111820;
+  --color-slate-950: #080d13;
 
   /* --- Structural accents ------------------------------------------------
      Sharp enterprise blue and teal. Used for information and for the
@@ -130,18 +135,18 @@
      Components use bg-surface / border-line / text-ink, not bg-white. */
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #f1f4f8;
-  --color-line: #dbe2ea;
-  --color-line-strong: #b7c2ce;
-  /* Darkened one step across the board after review: the previous values met the
-     4.5:1 AA floor but were genuinely hard to read at the 11–12px this interface
-     uses for secondary text. AA is a floor, not a target — small text wants 6:1
-     or better in practice, and `ink-faint` was carrying the evidence line, which
-     is content rather than decoration. */
-  --color-ink: #101923; /* 17.72:1 */
-  --color-ink-soft: #3a4653; /* 9.63:1 */
-  --color-ink-muted: #4a5765; /* 7.39:1 */
-  --color-ink-faint: #5b6877; /* 5.69:1 — the lightest text permitted anywhere */
+  --color-surface-sunken: #eef2f6;
+  --color-line: #d3dce5;
+  --color-line-strong: #a7b4c2;
+  /* Ramp B ink. Every level clears 7:1, which is AAA for normal text and the
+     right target rather than AA's 4.5 — this interface puts most of its content
+     at 11–13px, where the AA floor proved legible in a contrast checker and
+     tiring on a screen. `ink-faint` is now the lightest text permitted anywhere,
+     and at 7.26:1 it is darker than the *body* text of most interfaces. */
+  --color-ink: #0b1118; /* 18.96:1 */
+  --color-ink-soft: #2b3540; /* 12.46:1 */
+  --color-ink-muted: #3c4854; /* 9.35:1 */
+  --color-ink-faint: #4c5865; /* 7.26:1 — lightest text permitted anywhere */
 
   /* --- Typography --------------------------------------------------------
      Display: Space Grotesk — geometric, engineered, slightly idiosyncratic.
@@ -200,7 +205,7 @@
   --wash:
     radial-gradient(70rem 40rem at 12% -8%, rgb(31 111 208 / 0.05), transparent 60%),
     radial-gradient(60rem 34rem at 92% 4%, rgb(0 179 86 / 0.05), transparent 62%);
-  --page-bg: #eef2f6;
+  --page-bg: #e9eef3;
 }
 
 /* ============================================================================
@@ -217,27 +222,32 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-gray-50: #0b131b;
-    --color-gray-100: #131d27;
-    --color-gray-200: #1e2a36; /* borders on dark */
-    --color-gray-300: #2c3a48;
-    --color-gray-400: #7c8b9b; /* 4.9:1 on the dark surface */
-    --color-gray-500: #97a5b4;
-    --color-gray-600: #b2bfcb;
-    --color-gray-700: #ccd6e0;
-    --color-gray-800: #e0e7ee;
-    --color-gray-900: #f2f5f9;
+    /* Inverted ramp B. The light steps are recomputed rather than mirrored:
+       simply reversing the scale gives a `gray-400` of #a7b4c2, which is a
+       perfectly good border but far lighter than a mid-tone needs to be for
+       text on a dark surface. These are measured against the dark surface
+       below — the faintest is 6.35:1. */
+    --color-gray-50: #080d13;
+    --color-gray-100: #111820;
+    --color-gray-200: #1e2833; /* borders on dark */
+    --color-gray-300: #2c3845;
+    --color-gray-400: #8d9aa9; /* 6.35:1 on the dark surface */
+    --color-gray-500: #aab7c5; /* 8.91:1 */
+    --color-gray-600: #ccd6e0; /* 12.36:1 */
+    --color-gray-700: #dde4ec;
+    --color-gray-800: #eaeff4;
+    --color-gray-900: #f2f5f9; /* 16.64:1 */
     --color-gray-950: #ffffff;
 
-    --color-surface: #101a23;
-    --color-surface-raised: #16222d;
-    --color-surface-sunken: #0b131b;
-    --color-line: #1e2a36;
-    --color-line-strong: #2c3a48;
-    --color-ink: #f2f5f9;
-    --color-ink-soft: #ccd6e0;
-    --color-ink-muted: #a9b6c4;
-    --color-ink-faint: #8b99a9;
+    --color-surface: #0e1620;
+    --color-surface-raised: #16202b;
+    --color-surface-sunken: #080d13;
+    --color-line: #1e2833;
+    --color-line-strong: #2c3845;
+    --color-ink: #f2f5f9; /* 16.64:1 */
+    --color-ink-soft: #ccd6e0; /* 12.36:1 */
+    --color-ink-muted: #aab7c5; /* 8.91:1 */
+    --color-ink-faint: #8d9aa9; /* 6.35:1 */
 
     /* Brand steps lighten so text and links stay legible on dark surfaces.
        The tint and the deepest step have to flip together with them: leaving
@@ -273,7 +283,7 @@
     --color-teal-500: #3fb9ac;
     --color-teal-700: #7fd6cb;
 
-    --page-bg: #0b131b;
+    --page-bg: #080d13;
     --wash:
       radial-gradient(70rem 40rem at 12% -8%, rgb(31 111 208 / 0.14), transparent 60%),
       radial-gradient(60rem 34rem at 92% 4%, rgb(0 179 86 / 0.1), transparent 62%);
