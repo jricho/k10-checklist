@@ -19,6 +19,7 @@ import {
   ocCommandFor,
   progressForStage,
   STAGES,
+  STAGE_ORDER,
   statusOf,
   type ChecklistItem,
   type ItemStatus,
@@ -249,23 +250,64 @@ function marker(status: ItemStatus): { text: string; colour: Rgb } {
   }
 }
 
+/**
+ * How much of the journey the export covers.
+ *
+ *  - "stage"   just the selected stage. The artefact for a single gate: a POC
+ *              sign-off should not carry 82 unanswered Pre-Production and Day-2
+ *              items, because a reader cannot tell "not applicable yet" from
+ *              "we skipped it".
+ *  - "through" the selected stage and everything before it. The right choice for
+ *              a go-live change record, since a stage's gate includes upstream
+ *              blockers — a Go-Live PDF that omits the POC restore evidence is
+ *              missing the part an auditor cares about.
+ *  - "all"     the full four-stage record.
+ */
+export type ExportScope = "stage" | "through" | "all";
+
+export const EXPORT_SCOPE_LABELS: Record<ExportScope, string> = {
+  stage: "This stage only",
+  through: "This stage and earlier",
+  all: "All four stages",
+};
+
 export interface ExportInput {
   assessment: Assessment;
   diagram?: { dataUrl: string; name: string; dims: { w: number; h: number } } | null;
+  /** Defaults to "through" — the useful default for a gate sign-off. */
+  scope?: ExportScope;
 }
 
-export async function exportAssessmentPdf({ assessment, diagram }: ExportInput): Promise<void> {
+function stagesInScope(scope: ExportScope, active: StageId) {
+  if (scope === "all") return STAGES;
+  const activeIndex = STAGE_ORDER.indexOf(active);
+  if (scope === "stage") return STAGES.filter(s => s.id === active);
+  return STAGES.filter(s => STAGE_ORDER.indexOf(s.id) <= activeIndex);
+}
+
+export async function exportAssessmentPdf({
+  assessment,
+  diagram,
+  scope = "through",
+}: ExportInput): Promise<void> {
   // Dynamic import: jsPDF is only needed when the button is pressed, so it stays
   // out of the initial page bundle.
   const { default: JsPDF } = await import("jspdf");
   const doc = new JsPDF() as unknown as JsPdfLike;
   const w = new PdfWriter(doc);
-  const { meta, statuses, notes, outputs } = assessment;
+  const { meta, statuses, notes, outputs, activeStage } = assessment;
+  const included = stagesInScope(scope, activeStage);
+  const includedIds = new Set(included.map(s => s.id));
+  const activeStageName = STAGES.find(s => s.id === activeStage)?.name ?? "";
 
   // ---------------------------------------------------------------- cover page
   w.banner(
     "Veeam Kasten — Readiness & Operating Maturity",
-    "POC → Pre-Production → Go-Live → Day-2 Operations",
+    scope === "all"
+      ? "POC → Pre-Production → Go-Live → Day-2 Operations"
+      : scope === "stage"
+        ? `${activeStageName} — stage gate`
+        : `Through ${activeStageName}`,
   );
 
   w.keyValue("Project", meta.project);
@@ -286,7 +328,18 @@ export async function exportAssessmentPdf({ assessment, diagram }: ExportInput):
           : `${p.blockersOutstanding.length} blocking item(s) outstanding`;
     w.keyValue(
       stage.name,
-      `${p.passed}/${p.applicable} verified (${p.percent}%)${p.na ? `, ${p.na} N/A` : ""}${p.failed ? `, ${p.failed} failed` : ""} — ${gateText}`,
+      `${p.passed}/${p.applicable} verified (${p.percent}%)${p.na ? `, ${p.na} N/A` : ""}${p.failed ? `, ${p.failed} failed` : ""} — ${gateText}${includedIds.has(stage.id) ? "" : "   [detail not in this export]"}`,
+    );
+  }
+
+  // The whole journey is always summarised even when the detail is scoped, so a
+  // reader of a POC-only PDF can still see that three stages remain ahead rather
+  // than mistaking the document for the complete picture.
+  if (scope !== "all") {
+    w.space(1);
+    w.paragraph(
+      `Detail in this export: ${included.map(s => s.name).join(", ")}. Counts above cover the full journey.`,
+      { size: 8, colour: MUTED, style: "italic" },
     );
   }
 
@@ -307,7 +360,7 @@ export async function exportAssessmentPdf({ assessment, diagram }: ExportInput):
   );
 
   // ------------------------------------------------------------- stage detail
-  for (const stage of STAGES) {
+  for (const stage of included) {
     const p = progressForStage(stage.id, statuses);
     w.newPage();
     w.banner(stage.name, stage.roadmapPhase);
@@ -359,6 +412,12 @@ export async function exportAssessmentPdf({ assessment, diagram }: ExportInput):
     "This page reports what this checklist verified, mapped onto the seven dimensions of the Kasten Maturity Model. It is evidence, not a score: roughly half of each dimension's descriptor concerns process, ownership and cadence that no command can observe, so the companion workbook remains the authoritative instrument. Use the evidenced level as the starting point for the workbook's Current Level column, then adjust on judgement — and use the outstanding items as the concrete work that would justify the next level.",
     { size: 8.5 },
   );
+  if (scope !== "all") {
+    w.paragraph(
+      "Maturity evidence is computed across the whole checklist, not just the stages detailed above, so some items named below appear in stages not included in this export.",
+      { size: 8, colour: MUTED, style: "italic" },
+    );
+  }
   w.space(2);
 
   for (const ev of maturityEvidence(statuses)) {
@@ -389,7 +448,7 @@ export async function exportAssessmentPdf({ assessment, diagram }: ExportInput):
 
   w.space(2);
   w.paragraph(
-    "Next step: open the Self-Assessment sheet of the workbook, record Current Level and Target Level for each of the seven dimensions above, and use the Recommendations tab for the level-transition actions. Reassess at least annually, or after any incident, drill, fleet change or new regulatory requirement.",
+    "Next step: open kasten-maturity-self-assessment.xlsx — downloadable from the Maturity panel of this tool, or served at /kasten-maturity-self-assessment.xlsx. On its Self-Assessment sheet (the second tab), record Current Level and Target Level for each of the seven dimensions above, then use the Recommendations tab for the level-transition actions. Reassess at least annually, or after any incident, drill, fleet change or new regulatory requirement.",
     { size: 8.5, style: "italic", colour: MUTED },
   );
 
@@ -430,7 +489,8 @@ export async function exportAssessmentPdf({ assessment, diagram }: ExportInput):
   }
 
   const slug = meta.project ? meta.project.trim().replace(/\s+/g, "-").toLowerCase() + "-" : "";
-  doc.save(`kasten-readiness-${slug}${meta.date}.pdf`);
+  const scopeSlug = scope === "all" ? "full-journey" : scope === "stage" ? activeStage : `through-${activeStage}`;
+  doc.save(`kasten-readiness-${slug}${scopeSlug}-${meta.date}.pdf`);
 }
 
 function writeItem(

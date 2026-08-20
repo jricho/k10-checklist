@@ -8,7 +8,12 @@ import { SectionCard } from "../components/checklist/section-card";
 import { MaturityPanel } from "../components/checklist/maturity-panel";
 import { DiagnosticsCard } from "../components/checklist/diagnostics-card";
 import { useAssessment } from "../lib/checklist-state";
-import { downloadJson, exportAssessmentPdf } from "../lib/export-pdf";
+import {
+  downloadJson,
+  exportAssessmentPdf,
+  EXPORT_SCOPE_LABELS,
+  type ExportScope,
+} from "../lib/export-pdf";
 import { STAGES_BY_ID, overallProgress } from "../lib/checklist-data";
 
 // The page is now composition only: state comes from `useAssessment`, structure
@@ -26,6 +31,9 @@ export default function ChecklistPage() {
 
   const [diagram, setDiagram] = useState<DiagramState>(null);
   const [exporting, setExporting] = useState(false);
+  // Defaults to the stage being viewed plus everything before it: a gate's
+  // sign-off needs the upstream evidence, but not the stages still ahead.
+  const [exportScope, setExportScope] = useState<ExportScope>("through");
   const [showTools, setShowTools] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -35,7 +43,7 @@ export default function ChecklistPage() {
   const handleExportPdf = async () => {
     setExporting(true);
     try {
-      await exportAssessmentPdf({ assessment, diagram });
+      await exportAssessmentPdf({ assessment, diagram, scope: exportScope });
     } finally {
       setExporting(false);
     }
@@ -113,6 +121,22 @@ export default function ChecklistPage() {
             >
               Save
             </button>
+            <label htmlFor="export-scope" className="sr-only">
+              PDF export scope
+            </label>
+            <select
+              id="export-scope"
+              value={exportScope}
+              onChange={e => setExportScope(e.target.value as ExportScope)}
+              title="How much of the journey the exported PDF covers"
+              className="text-xs font-medium text-gray-600 border border-gray-300 rounded-lg px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#219150]"
+            >
+              {(Object.keys(EXPORT_SCOPE_LABELS) as ExportScope[]).map(key => (
+                <option key={key} value={key}>
+                  {EXPORT_SCOPE_LABELS[key]}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
               onClick={handleExportPdf}
