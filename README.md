@@ -1,31 +1,77 @@
-## Getting Started
+# Veeam Kasten readiness checklist
 
-First, run the development server:
+A self-hosted web app for working through — and evidencing — a customer's journey
+from a Kasten proof of concept to day-2 operating maturity, against a real
+cluster. Step through the checklist interactively, paste in the output of the
+verification commands, and export a PDF for the change record, the go-live
+sign-off or the audit evidence pack.
+
+No backend, no cluster access, no telemetry. Everything stays in the browser;
+the app never sees your kubeconfig.
+
+## The four stages
+
+Readiness is not one question, so the checklist is not one list. Each stage has
+its own items, its own exit criteria, and a gate made of named **blocking**
+items — never a completion percentage, because an 80%-complete checklist that
+happens to be missing "restore proven from an exported restore point" is not 80%
+ready.
+
+| Stage | Roadmap phase | The question it answers |
+|---|---|---|
+| **Proof of Concept** | Phase 1 — Foundation, Days 1–14 | Can we get *this* environment's data back? |
+| **Pre-Production** | Phase 2 — Harden the Basics, Days 15–45 | Is protection automatic, consistent, offsite and immutable? |
+| **Go-Live** | Phase 3 — Optimize & Harden, Days 46–75 | Will anyone know when it fails, and can someone else recover it? |
+| **Day-2 Operations** | Phase 4 — Prove Value, Days 76–100 and beyond | Is maturity being sustained, or quietly decaying? |
+
+Stages map to the phases of *Your Path to Resilience with Veeam Kasten*. Every
+item is answered **Pass / Fail / N/A** — N/A leaves the denominator, so a
+single-cluster customer is not penalised for the multi-cluster section, and an
+explicit Fail records a known, accepted gap rather than an unanswered question.
+
+## Maturity model integration
+
+Each item is tagged with the dimension and level it evidences in the Kasten
+Maturity Model. The app reports, per dimension, the highest level for which
+every tagged item is satisfied, and names the items standing between that and
+the next level. The PDF carries this on its own page, laid out for transcription
+into the *Kasten Maturity Self-Assessment* workbook.
+
+This is deliberately evidence, not a score: about half of each dimension's
+descriptor concerns process, ownership and cadence that no `kubectl` command can
+observe, so the workbook remains the authoritative instrument. The checklist
+evidences a cluster on a date; the workbook judges an organisation over time.
+
+## Verification commands
+
+Every item that can be evidenced from the cluster carries a `kubectl` command
+(and an `oc` form, derived automatically unless the OpenShift path genuinely
+differs). They are all read-only, and they aim to prove the assertion rather
+than the existence of the noun — `kubectl get policies` tells you a policy
+exists; the command here tells you whether it exports, what it retains, what it
+selects and whether someone left it paused.
+
+Requires `kubectl` or `oc`, plus `jq` and `helm`, on the operator's workstation.
+
+## Assessment state
+
+Answers, notes and captured output persist to browser `localStorage`, so a
+reload or a closed laptop does not lose an assessment walked through over
+several days. **Save** exports the whole assessment as JSON — version it
+alongside the cluster's IaC, hand it to a colleague, or diff it against last
+quarter's. **Open** restores one.
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npx tsc --noEmit
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Checklist content lives in `lib/stages/*.ts`; see [AGENTS.md](AGENTS.md) for the
+conventions that matter when editing it.
 
 ## Run as a container
 
