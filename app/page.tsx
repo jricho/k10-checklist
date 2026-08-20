@@ -467,12 +467,24 @@ function Field({
       <label htmlFor={id} className="block text-sm font-medium text-ink-soft mb-1">
         {label}
       </label>
+      {/* suppressHydrationWarning is for third-party DOM mutation, not for our
+          own mismatches.
+          Enterprise browsers and password managers annotate form fields before
+          React hydrates — Island Browser adds `island_form_infra_*` and
+          `island_field_signature` to every text input, which React then reports
+          as a server/client attribute mismatch on all six fields here. Nothing in
+          this component varies between server and client: value comes from state
+          that starts empty, and id is derived from the static label.
+          The suppression is scoped to this element's attributes only, and the
+          cost of leaving it noisy is that a real hydration error gets lost in
+          six spurious ones. */}
       <input
         id={id}
         type={type}
         value={value}
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
+        suppressHydrationWarning
         className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
       />
     </div>

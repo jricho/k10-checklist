@@ -24,6 +24,8 @@ import { Chip, Panel, PanelHeader } from "../ui/panel";
 // The measured column is the one that settles arguments. A target is an
 // intention; a measured restore is what happened.
 
+// suppressHydrationWarning on each input: same third-party form annotation as
+// the Field inputs in app/page.tsx. See the comment there for the reasoning.
 function TierRow({
   tier,
   onChange,
@@ -67,6 +69,7 @@ function TierRow({
           value={tier.name}
           onChange={e => onChange({ name: e.target.value })}
           placeholder="Tier name"
+          suppressHydrationWarning
           className={`${cell} font-semibold`}
         />
       </div>
@@ -81,6 +84,7 @@ function TierRow({
           onChange={e => onChange({ rpoTarget: e.target.value })}
           placeholder="1h"
           title="Maximum acceptable data loss. A bare number is read as hours."
+          suppressHydrationWarning
           className={cell}
         />
         {echo(tier.rpoTarget, rpo)}
@@ -96,6 +100,7 @@ function TierRow({
           onChange={e => onChange({ rtoTarget: e.target.value })}
           placeholder="4h"
           title="Maximum acceptable downtime. A bare number is read as hours."
+          suppressHydrationWarning
           className={cell}
         />
         {echo(tier.rtoTarget, rto)}
@@ -133,6 +138,7 @@ function TierRow({
             onChange={e => onChange({ measuredRestore: e.target.value })}
             placeholder="measured"
             title="Actual restore time observed in a test or drill"
+            suppressHydrationWarning
             className={cell}
           />
           {overTarget && (
@@ -155,6 +161,7 @@ function TierRow({
           onChange={e => onChange({ notes: e.target.value })}
           placeholder="note"
           aria-label={`Note for ${tier.name || "this tier"}`}
+          suppressHydrationWarning
           className={cell}
         />
         {canRemove && (
