@@ -102,6 +102,35 @@ deliberately does **not**. A real cluster PNG is several MB as a data URL agains
 a ~5 MB quota, and writing it there fails the whole save — taking the checklist
 answers with it.
 
+## The reference search index
+
+`public/reference-index.json` is 122 chunks extracted from the three reference
+documents, searched in the browser by `lib/reference-search.ts`. There is no
+model and no API call: results are passages quoted verbatim, so the feature
+cannot hallucinate, and it cannot synthesise across passages either.
+
+**It is generated, not hand-written, and regeneration is manual.** When any of
+the three documents changes, the index must be rebuilt or answers will quote
+superseded text — which is worse than no answer, because it looks authoritative.
+The extraction walks the docx body in order tracking heading context, reads the
+workbook's Self-Assessment and Recommendations sheets row by row, and chunks the
+roadmap PDF by page.
+
+Two things to know before touching the search:
+
+- **The tokeniser splits hyphenated compounds into parts as well as keeping the
+  whole.** Without it, `air-gapped` in the documents is one token that a query
+  for "air gapped" can never match — and the section titled "Edge and air-gapped
+  patterns" was unreachable. The same applies to multi-cluster,
+  application-consistent, write-once and export-only.
+- **The roadmap is weighted at 0.82.** It is a two-column PDF and extraction
+  interleaves body with sidebar, so its chunks match many terms without being
+  about anything. The discount stops them displacing clean playbook passages.
+
+`SYNONYMS` maps question vocabulary onto document vocabulary (object lock →
+immutability, KDR → catalog/passphrase). Add to it rather than tuning weights
+when a reasonable question returns nothing.
+
 ## Before shipping command changes
 
 Several commands read K10 CRD fields whose paths can move between releases.

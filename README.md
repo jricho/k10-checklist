@@ -58,18 +58,20 @@ evidences a cluster on a date; the workbook judges an organisation over time.
 
 ## Reference documents
 
-Both ship in `public/`, so the links resolve in a self-hosted or air-gapped
+All three ship in `public/`, so the links resolve in a self-hosted or air-gapped
 deployment rather than pointing at an intranet:
 
 | File | What it is |
 |---|---|
 | [`kasten-resilience-playbook.pdf`](public/kasten-resilience-playbook.pdf) | The maturity model, day-2 operating model and reference architecture this checklist is built from. Each stage cites the sections it draws on, shown under the stage goal and printed in the export |
 | [`kasten-maturity-self-assessment.xlsx`](public/kasten-maturity-self-assessment.xlsx) | The scoring workbook. Sheets are *Instructions*, **Self-Assessment** (the one you fill in), *Summary* and *Recommendations* |
+| [`your-path-to-resilience.pdf`](public/your-path-to-resilience.pdf) | The 100-day roadmap. The four stages map onto its phases, and the Ask search cites it by page |
 
-> **Maintainers:** both are copies of canonical documents. When either changes,
+> **Maintainers:** all three are copies of canonical documents. When any changes,
 > replace the file here and check that (a) the workbook's level descriptors still
-> match the `signals` tags in `lib/stages/*.ts`, and (b) the section numbers in
-> each stage's `playbookRefs` still point where they claim to.
+> match the `signals` tags in `lib/stages/*.ts`, (b) the section numbers in each
+> stage's `playbookRefs` still point where they claim to, and (c) the search index
+> is regenerated — see [AGENTS.md](AGENTS.md), *The reference search index*.
 
 ## Verification commands
 
@@ -81,6 +83,23 @@ exists; the command here tells you whether it exports, what it retains, what it
 selects and whether someone left it paused.
 
 Requires `kubectl` or `oc`, plus `jq` and `helm`, on the operator's workstation.
+
+## Ask the reference documents
+
+The **Ask** button in the header opens a search over the Resilience Playbook, the
+Self-Assessment workbook and the 100-day roadmap. Results are the passages
+themselves, with section references and a link into the source PDF.
+
+It runs entirely in the browser against a static index served alongside the app.
+No model, no API key, no egress — which is the point: this tool's answers get
+signed by a security reviewer, and a chat endpoint would mean questions naming a
+customer's clusters, gaps and RTO commitments left their environment. The trade
+is that it quotes rather than explains, and a question spanning three sections
+returns three passages instead of one summary.
+
+Product questions — installation, commands, version support — are detected by
+vocabulary and redirected to `docs.kasten.io` rather than answered badly from
+documents that do not cover them.
 
 ## Assessment state
 
