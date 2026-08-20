@@ -1,8 +1,9 @@
 "use client";
 
 import { DIMENSIONS, type StatusMap } from "../../lib/checklist-data";
-import { maturityEvidence } from "../../lib/maturity";
+import { maturityEvidence, radarInputs } from "../../lib/maturity";
 import { DownloadIcon, Marker } from "../ui/icon";
+import { MaturityRadar } from "./maturity-radar";
 
 // The visible link between this tool and the Resilience Playbook.
 //
@@ -50,14 +51,43 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
         Current Level, and the outstanding items as the work that would justify the next one.
       </p>
 
-      {scored.length > 0 && (
-        <div className="flex items-baseline gap-3 mb-5 pb-5 border-b border-line">
-          <span className="text-3xl font-bold text-ink tabular-nums">L{average.toFixed(1)}</span>
-          <span className="text-[13px] text-ink-muted">
-            average across the {scored.length} dimension{scored.length === 1 ? "" : "s"} with complete evidence
-          </span>
+      {/* Chart and headline side by side from `lg`, stacked below it.
+          The radar is the leader's view — position at a glance — and the list
+          beneath is the engineer's, naming the specific items. Both readers are
+          served by the same panel rather than by two competing ones. */}
+      {/* Column matches the radar's 400px viewBox exactly, so the chart can no
+          longer paint over the headline the way it did with `overflow-visible`.
+          `minmax(0,1fr)` on the second column rather than a bare `1fr`: without
+          it a long unbroken word in the caveat can force the track wider than
+          its share and push the chart out of its own column. */}
+      <div className="mb-5 pb-5 border-b border-line grid lg:grid-cols-[400px_minmax(0,1fr)] gap-6 lg:gap-8 items-center">
+        <MaturityRadar inputs={radarInputs(statuses)} />
+        <div>
+          {scored.length > 0 ? (
+            <>
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl font-bold text-ink tabular-nums">L{average.toFixed(1)}</span>
+                <span className="text-[13px] text-ink-muted">
+                  average across the {scored.length} dimension{scored.length === 1 ? "" : "s"} with complete
+                  evidence
+                </span>
+              </div>
+              {/* The average is reported because the workbook asks for one, and
+                  immediately qualified because a mean across seven dimensions
+                  hides the only number that governs risk: the lowest. */}
+              <p className="text-[12px] text-ink-muted mt-2 leading-relaxed max-w-md">
+                Treat the average as reporting, not as a target. Recoverability is limited by the weakest
+                dimension, not by the mean of the seven — the shape of the chart matters more than its area.
+              </p>
+            </>
+          ) : (
+            <p className="text-[13px] text-ink-muted leading-relaxed max-w-md">
+              No dimension yet has a complete level of evidence. A level appears here once every item tagged to
+              it — at that level and every level below — is either passing or ruled N/A.
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="space-y-4">
         {evidence.map(ev => (

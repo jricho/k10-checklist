@@ -46,6 +46,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "Every production policy has a non-empty selector. No policy enumerates individual workloads.",
           cmd: C.POLICY_SUMMARY,
           blocking: true,
+          pillar: "policy",
           signals: [["coverage", 3]],
         },
         {
@@ -55,6 +56,8 @@ export const PREPROD_STAGE: Stage = {
           evidence:
             "Distinct policies for production / non-production / edge, each with a frequency and retention that matches its tier's documented RPO.",
           cmd: C.POLICY_SUMMARY,
+          pillar: "policy",
+          pillar2: "recovery",
           signals: [["coverage", 3], ["coverage", 4]],
         },
         {
@@ -64,6 +67,8 @@ export const PREPROD_STAGE: Stage = {
           evidence: "The snapshot-only report returns nothing.",
           cmd: C.POLICIES_WITHOUT_EXPORT,
           blocking: true,
+          pillar: "policy",
+          pillar2: "recovery",
           signals: [["coverage", 3], ["storage", 3]],
         },
         {
@@ -74,6 +79,7 @@ export const PREPROD_STAGE: Stage = {
             "The list of PVC-holding namespaces is fully accounted for by policy selectors. Every unmatched namespace appears on a written exclusion list.",
           cmd: `${C.NAMESPACES_WITH_PVCS}; echo; ${C.POLICY_SUMMARY}`,
           blocking: true,
+          pillar: "policy",
           signals: [["coverage", 3]],
         },
         {
@@ -81,6 +87,7 @@ export const PREPROD_STAGE: Stage = {
           label: "Deliberate exclusions documented",
           why: "Excluding scratch, cache and ephemeral volumes is good practice and cuts cost. Excluding them without writing it down is indistinguishable from missing them.",
           evidence: "A written exclusion list with a reason per entry, reviewed at each coverage audit.",
+          pillar: "policy",
           signals: [["coverage", 4]],
         },
         {
@@ -89,6 +96,8 @@ export const PREPROD_STAGE: Stage = {
           why: "Every policy firing at midnight produces storage contention, missed windows and snapshot pressure that looks like a Kasten fault. Stagger against how long jobs actually take, not how long they were assumed to take.",
           evidence: "Start/end times show jobs completing inside their window without overlap on shared storage.",
           cmd: C.BACKUP_ACTION_HISTORY,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["coverage", 3]],
         },
         {
@@ -97,6 +106,7 @@ export const PREPROD_STAGE: Stage = {
           why: "Pausing a policy to debug something is normal. Forgetting to unpause it is the quietest possible way to stop protecting a workload — no failure, no alert, no job.",
           evidence: "The paused-policy report returns nothing.",
           cmd: C.POLICIES_PAUSED,
+          pillar: "policy",
           signals: [["coverage", 3]],
         },
         {
@@ -106,6 +116,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "VirtualMachine resources are covered by a policy, or the cluster runs none.",
           cmd: `kubectl get virtualmachines.kubevirt.io -A 2>/dev/null || echo 'No KubeVirt CRDs — mark N/A'`,
           conditional: true,
+          pillar: "policy",
           signals: [["coverage", 3]],
         },
       ],
@@ -123,6 +134,8 @@ export const PREPROD_STAGE: Stage = {
           evidence: "A Blueprint plus binding for each engine identified during the POC.",
           cmd: `kubectl get ${C.CRD.blueprint} -n ${C.K10_NS}; echo; kubectl get ${C.CRD.blueprintBinding} -n ${C.K10_NS} -o yaml | grep -E 'name:|blueprint:|selector:|matchLabels:' `,
           blocking: true,
+          pillar: "policy",
+          pillar2: "recovery",
           signals: [["appconsistency", 3]],
         },
         {
@@ -131,6 +144,8 @@ export const PREPROD_STAGE: Stage = {
           why: "Sidecar injection is how quiescing reaches the workload. If PSA or an SCC blocks it, the Blueprint silently does not apply and the backup falls back to crash-consistent — while still reporting success.",
           evidence: "Injection configured in the Helm values and confirmed present on a running data-service pod.",
           cmd: `${C.K10_HELM_VALUES} -a | grep -Ei 'injectKanisterSidecar|sidecar' ; echo; kubectl get pods -A -o json | jq -r '.items[] | select((.spec.containers // []) | map(.name) | index("kanister-sidecar")) | [.metadata.namespace, .metadata.name] | @tsv'`,
+          pillar: "security",
+          pillar2: "policy",
           signals: [["appconsistency", 3]],
         },
         {
@@ -140,6 +155,8 @@ export const PREPROD_STAGE: Stage = {
           evidence: "A restore per engine, with the consistency check output attached and clean.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
+          pillar2: "policy",
           signals: [["appconsistency", 4], ["people", 3]],
         },
         {
@@ -148,6 +165,8 @@ export const PREPROD_STAGE: Stage = {
           why: "Some workloads will not have a supported Blueprint. A documented logical-dump-into-a-PVC pattern is a legitimate answer; discovering the gap during an incident is not.",
           evidence: "Named workloads with a written fallback procedure, or none applicable.",
           conditional: true,
+          pillar: "recovery",
+          pillar2: "policy",
           signals: [["appconsistency", 4]],
         },
       ],
@@ -165,6 +184,8 @@ export const PREPROD_STAGE: Stage = {
           evidence: "Target location recorded, with an explicit statement of which failure domain it does not share.",
           cmd: C.PROFILE_SUMMARY,
           blocking: true,
+          pillar: "recovery",
+          pillar2: "security",
           signals: [["storage", 3]],
         },
         {
@@ -175,6 +196,7 @@ export const PREPROD_STAGE: Stage = {
             "Object Lock (or Blob immutability, or a Hardened Repository) confirmed by querying the storage provider directly, plus versioning enabled where the provider requires it.",
           cmd: `${C.PROFILE_SUMMARY}; echo '--- verify at the storage layer (substitute your bucket) ---'; ${C.OBJECT_LOCK_CHECK}`,
           blocking: true,
+          pillar: "security",
           signals: [["storage", 3], ["storage", 4]],
         },
         {
@@ -183,6 +205,8 @@ export const PREPROD_STAGE: Stage = {
           why: "If Kasten's retention is shorter than the lock period, expiry attempts fail and the catalog fills with objects it cannot remove. If a lifecycle rule transitions or expires objects the lock protects, the two systems argue and one of them loses your restore point.",
           evidence: "Retention schedule, Object Lock period and lifecycle rules written side by side and reconciled.",
           cmd: C.POLICY_SUMMARY,
+          pillar: "security",
+          pillar2: "policy",
           signals: [["storage", 4], ["observability", 4]],
         },
         {
@@ -192,6 +216,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "A dedicated identity for backup storage, least-privilege, with a named owner and a rotation schedule independent of cluster credentials.",
           cmd: C.K10_SECRET_NAMES,
           blocking: true,
+          pillar: "security",
           signals: [["storage", 3]],
         },
         {
@@ -201,6 +226,7 @@ export const PREPROD_STAGE: Stage = {
           evidence:
             "The backup identity's policy grants no bypass permission, no ability to change the lock configuration, and no bucket-policy or lifecycle write access. Compliance mode where the retention requirement is regulatory.",
           blocking: true,
+          pillar: "security",
           signals: [["storage", 4]],
         },
         {
@@ -209,6 +235,8 @@ export const PREPROD_STAGE: Stage = {
           why: "Three copies: the live volume, a local or regional object copy, and a cross-region or off-site copy. One export target satisfies two of the three.",
           evidence: "At least two Location Profiles in different regions or providers, both validating.",
           cmd: C.PROFILE_SUMMARY,
+          pillar: "recovery",
+          pillar2: "security",
           signals: [["storage", 3]],
         },
         {
@@ -217,6 +245,7 @@ export const PREPROD_STAGE: Stage = {
           why: "Regulated workloads frequently require key custody, and retrofitting BYOK/CMEK after the archive is populated is considerably more work than configuring it first.",
           evidence: "TLS to the target confirmed, at-rest encryption confirmed, key custody recorded per workload tier.",
           conditional: true,
+          pillar: "security",
           signals: [["storage", 4]],
         },
         {
@@ -225,6 +254,8 @@ export const PREPROD_STAGE: Stage = {
           why: "Escrow that has never been used is a filing decision, not a recovery capability. Retrieving the passphrase through the documented procedure — by someone who does not already know it — is what proves the escrow works.",
           evidence:
             "A restore completed by an engineer who obtained the passphrase solely through the documented retrieval procedure, with the elapsed retrieval time recorded.",
+          pillar: "recovery",
+          pillar2: "security",
           signals: [["people", 4], ["dr", 4]],
         },
       ],
@@ -240,6 +271,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "OIDC / OpenShift Auth / LDAP configured; no shared static token in use.",
           cmd: `${C.K10_HELM_VALUES} -a | grep -Ei 'auth|oidc|ldap|dex|token' | head -30`,
           blocking: true,
+          pillar: "security",
           signals: [["central", 3]],
         },
         {
@@ -248,6 +280,7 @@ export const PREPROD_STAGE: Stage = {
           why: "Backup admin is a powerful role — it can read every volume in the cluster and destroy every restore point. Individual bindings drift; group bindings follow joiners and leavers.",
           evidence: "Bindings reference groups. Application teams hold namespace-scoped roles, not cluster-wide admin.",
           cmd: C.K10_RBAC,
+          pillar: "security",
           signals: [["central", 3]],
         },
         {
@@ -257,6 +290,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "No Ingress/Route, or one with TLS, enforced authentication and a source-range restriction.",
           cmd: `kubectl get ingress -n ${C.K10_NS} -o yaml | grep -E 'host:|tls:|secretName:|annotations:' `,
           oc: `oc get route -n ${C.K10_NS} -o custom-columns='NAME:.metadata.name,HOST:.spec.host,TLS:.spec.tls.termination'`,
+          pillar: "security",
           signals: [["central", 3]],
         },
       ],
@@ -273,6 +307,8 @@ export const PREPROD_STAGE: Stage = {
           evidence: "Primary instance promoted, clusters joined and visible, certificates trusted.",
           cmd: C.MCM_DISCOVERY,
           conditional: true,
+          pillar: "infrastructure",
+          pillar2: "policy",
           signals: [["central", 3]],
         },
         {
@@ -281,6 +317,8 @@ export const PREPROD_STAGE: Stage = {
           why: "Defining policy once and distributing it is what makes fleet-wide standards enforceable rather than aspirational — and what makes edge sites viable without per-site work.",
           evidence: "Global policies and profiles present, with per-cluster overrides deliberate and documented.",
           conditional: true,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["central", 3], ["coverage", 4]],
         },
         {
@@ -289,6 +327,7 @@ export const PREPROD_STAGE: Stage = {
           why: "Kasten licensing keys off node count. Finding an entitlement shortfall during a production incident, or at renewal with no budget line, are both avoidable.",
           evidence: "Node/worker count recorded against entitlement, with headroom for planned growth.",
           cmd: C.LICENCE_INPUTS,
+          pillar: "infrastructure",
           signals: [["observability", 4]],
         },
       ],
@@ -306,6 +345,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "A restore into a new namespace, with the application verified functional by its owner.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
           signals: [["dr", 3]],
         },
         {
@@ -315,6 +355,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "A restore completed on a second cluster via Import Policy or Kasten DR, with the elapsed time recorded.",
           cmd: `kubectl get ${C.CRD.importAction} -A -o json | jq -r '.items[] | [.metadata.namespace, .metadata.name, (.status.state // "-")] | @tsv'; echo; ${C.RESTORE_DURATIONS}`,
           blocking: true,
+          pillar: "recovery",
           signals: [["dr", 3]],
         },
         {
@@ -324,6 +365,7 @@ export const PREPROD_STAGE: Stage = {
           evidence: "Measured restore duration for the largest workload, next to its RTO target, with the gap acknowledged.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
           signals: [["dr", 4], ["people", 4]],
         },
         {
@@ -334,6 +376,8 @@ export const PREPROD_STAGE: Stage = {
             "Each application's cluster-scoped dependencies listed, and either captured by a cluster-scoped policy or reprovisioned by a tested IaC/GitOps path.",
           cmd: `kubectl get crd -o custom-columns='NAME:.metadata.name,GROUP:.spec.group' | grep -v 'kio.kasten.io\\|kanister.io' | head -40; echo; kubectl get validatingwebhookconfigurations,mutatingwebhookconfigurations -o name`,
           blocking: true,
+          pillar: "recovery",
+          pillar2: "policy",
           signals: [["coverage", 3]],
         },
         {
@@ -343,6 +387,8 @@ export const PREPROD_STAGE: Stage = {
           evidence: "A documented pause/resume procedure for the reconciler, tested as part of a restore.",
           cmd: `kubectl get applications.argoproj.io -A 2>/dev/null | head -20; kubectl get kustomizations.kustomize.toolkit.fluxcd.io,helmreleases.helm.toolkit.fluxcd.io -A 2>/dev/null | head -20; echo 'If neither returns anything, mark N/A'`,
           conditional: true,
+          pillar: "recovery",
+          pillar2: "infrastructure",
           signals: [["people", 3], ["dr", 3]],
         },
         {
@@ -351,6 +397,7 @@ export const PREPROD_STAGE: Stage = {
           why: "Operators, admission webhooks and services with startup dependencies need a sequence. Restoring a database after the application that expects it produces crash loops that look like data corruption.",
           evidence: "A written restore order per application, exercised at least once.",
           conditional: true,
+          pillar: "recovery",
           signals: [["dr", 4], ["people", 3]],
         },
       ],

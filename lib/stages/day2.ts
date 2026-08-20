@@ -48,6 +48,8 @@ export const DAY2_STAGE: Stage = {
           why: "A backup alert that has been firing for three weeks has trained the team to ignore the channel. Tolerated failures are how an environment stops being protected without any decision being taken.",
           evidence: "No alert older than 24 hours unacknowledged; no permanently silenced backup alert.",
           cmd: C.ACTIONS_NOT_COMPLETE,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["observability", 3]],
         },
         {
@@ -56,6 +58,8 @@ export const DAY2_STAGE: Stage = {
           why: "Warnings accumulate into a backlog nobody reads. Weekly is frequent enough that the list stays short enough to actually work through.",
           evidence: "A weekly review with the failed/warned list empty or each entry owned.",
           cmd: `${C.BACKUP_ACTION_HISTORY}; echo; ${C.ACTIONS_NOT_COMPLETE}`,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["observability", 3]],
         },
         {
@@ -64,6 +68,8 @@ export const DAY2_STAGE: Stage = {
           why: "Backup duration creeps as data grows. The failure mode is gradual until the day the window is missed and jobs overlap into production hours.",
           evidence: "Job durations trending flat, or growth understood and the window adjusted before it is breached.",
           cmd: C.BACKUP_ACTION_HISTORY,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["coverage", 4]],
         },
         {
@@ -73,6 +79,8 @@ export const DAY2_STAGE: Stage = {
           evidence: "The PVC-holding namespace list fully accounted for by policy selectors or the exclusion list. Deltas since last month noted.",
           cmd: `${C.NAMESPACES_WITH_PVCS}; echo; ${C.POLICY_SUMMARY}; echo; ${C.SC_WITHOUT_SNAPSHOT_CLASS}`,
           blocking: true,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["coverage", 4]],
         },
         {
@@ -82,6 +90,8 @@ export const DAY2_STAGE: Stage = {
           evidence: "Installed version within a bounded distance of current, with upgrades tested in non-production first.",
           cmd: `${C.K10_VERSION_INSTALLED}; echo '--- available ---'; helm repo update kasten >/dev/null 2>&1; helm search repo kasten/k10 --versions 2>/dev/null | head -5`,
           blocking: true,
+          pillar: "infrastructure",
+          pillar2: "security",
           signals: [["central", 4]],
         },
         {
@@ -90,6 +100,8 @@ export const DAY2_STAGE: Stage = {
           why: "Two failure modes, both common: upgrading Kubernetes past what the installed Kasten supports, and upgrading a cluster with no recent backup. The second turns a routine rollback into data loss.",
           evidence: "The platform upgrade runbook contains a Kasten compatibility check and a verified backup as prerequisites.",
           cmd: `${C.K8S_VERSION}; echo; ${C.K10_VERSION_INSTALLED}`,
+          pillar: "infrastructure",
+          pillar2: "recovery",
           signals: [["central", 4]],
         },
         {
@@ -99,6 +111,7 @@ export const DAY2_STAGE: Stage = {
           evidence: "A restore test per quarter, a different workload class each time, with measured time against target.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
           signals: [["people", 4]],
         },
         {
@@ -106,6 +119,8 @@ export const DAY2_STAGE: Stage = {
           label: "Annually: architecture and DR topology reviewed against current requirements",
           why: "The estate that the architecture was designed for is not the estate you have a year later. Cluster count, data volume, regulatory scope and RTO expectations all move.",
           evidence: "A dated review with any change to topology or tiering recorded.",
+          pillar: "recovery",
+          pillar2: "infrastructure",
           signals: [["people", 5], ["observability", 5]],
         },
         {
@@ -115,6 +130,7 @@ export const DAY2_STAGE: Stage = {
           evidence:
             "The workbook re-scored, current versus previous levels compared, and the largest remaining gaps carried into the next planning cycle.",
           blocking: true,
+          pillar: "infrastructure",
           signals: [["people", 5]],
         },
         {
@@ -123,6 +139,7 @@ export const DAY2_STAGE: Stage = {
           why: "Fleet growth outpaces entitlement quietly, and renewal is a poor time to discover it.",
           evidence: "Node count per cluster against entitlement, with growth projected to the next renewal.",
           cmd: C.LICENCE_INPUTS,
+          pillar: "infrastructure",
           signals: [["observability", 5]],
         },
       ],
@@ -138,6 +155,7 @@ export const DAY2_STAGE: Stage = {
           label: "A DR drill calendar exists with named participants",
           why: "Drills that are not scheduled do not happen — there is always a release. Naming participants in advance also stops the drill from only ever involving the person who already knows the answers.",
           evidence: "Dates and names for the next four quarters.",
+          pillar: "recovery",
           signals: [["dr", 4], ["people", 4]],
         },
         {
@@ -147,6 +165,7 @@ export const DAY2_STAGE: Stage = {
           evidence: "Measured times per drill, compared to target, with a raised action for every miss.",
           cmd: C.RESTORE_DURATIONS,
           blocking: true,
+          pillar: "recovery",
           signals: [["dr", 4]],
         },
         {
@@ -155,6 +174,7 @@ export const DAY2_STAGE: Stage = {
           why: "Namespace restores exercise a fraction of the recovery path. Rebuilding a cluster, recovering the Kasten catalog from Kasten DR and restoring the estate is the scenario the whole architecture exists for, and the only one that tests the dependency walk end to end.",
           evidence: "A dated full-loss drill: cluster rebuilt, catalog recovered, workloads restored, applications validated by their owners.",
           blocking: true,
+          pillar: "recovery",
           signals: [["dr", 4], ["people", 4]],
         },
         {
@@ -162,6 +182,7 @@ export const DAY2_STAGE: Stage = {
           label: "Drill findings demonstrably change policy, architecture or training",
           why: "This is the whole difference between Level 4 and Level 5. Findings that are recorded and not acted on make the next drill produce the same findings.",
           evidence: "A traceable change — a runbook version bump, a policy edit, a training session — for each significant finding.",
+          pillar: "recovery",
           signals: [["people", 5]],
         },
         {
@@ -170,6 +191,8 @@ export const DAY2_STAGE: Stage = {
           why: "Automated, routine failure injection is what keeps recovery from decaying between manual drills.",
           evidence: "An automated exercise running on a schedule with results published.",
           conditional: true,
+          pillar: "recovery",
+          pillar2: "infrastructure",
           signals: [["dr", 5]],
         },
       ],
@@ -183,6 +206,8 @@ export const DAY2_STAGE: Stage = {
           label: "Backup storage growth trended, with spikes alerted",
           why: "An unexpected growth spike means one of three things: someone included a high-churn ephemeral volume, data is corrupting, or something is encrypting volumes. All three are worth an alert, and the third is worth a page.",
           evidence: "Growth trend visible with a threshold alert, and each past spike explained.",
+          pillar: "infrastructure",
+          pillar2: "security",
           signals: [["storage", 4]],
         },
         {
@@ -190,6 +215,8 @@ export const DAY2_STAGE: Stage = {
           label: "Lifecycle rules move aged backups to cheaper tiers without breaking retention",
           why: "Backup archives grow monotonically and are the easiest storage line to reduce. The constraint is that lifecycle rules and Kasten retention must agree, and that archival tiers have retrieval times that change RTO.",
           evidence: "Lifecycle rules documented alongside retention, with the retrieval-time impact on RTO acknowledged.",
+          pillar: "policy",
+          pillar2: "security",
           signals: [["storage", 4]],
         },
         {
@@ -198,6 +225,8 @@ export const DAY2_STAGE: Stage = {
           why: "Snapshot leakage is a real and boring problem: contents whose VolumeSnapshot is gone keep consuming array capacity and cost, and nothing reports them.",
           evidence: "The orphan report empty or each entry explained. Include this in the monthly audit.",
           cmd: `${C.ORPHANED_SNAPSHOT_CONTENTS}; echo; ${C.SNAPSHOT_INVENTORY}`,
+          pillar: "policy",
+          pillar2: "infrastructure",
           signals: [["storage", 4]],
         },
         {
@@ -206,6 +235,7 @@ export const DAY2_STAGE: Stage = {
           why: "The catalog is the component whose loss hurts most and whose growth is least watched. A full catalog PVC is an outage; a restarting catalog pod is the warning.",
           evidence: "Catalog PVC utilisation and pod restart counts on a dashboard with a threshold alert.",
           cmd: `kubectl get pvc -n ${C.K10_NS}; echo; ${C.K10_POD_HEALTH}`,
+          pillar: "infrastructure",
           signals: [["observability", 3]],
         },
         {
@@ -214,6 +244,7 @@ export const DAY2_STAGE: Stage = {
           why: "A Level 5 practice: continuous optimisation rather than an annual surprise.",
           evidence: "Backup storage cost reviewed on a cadence, with tiering decisions taken jointly.",
           conditional: true,
+          pillar: "infrastructure",
           signals: [["storage", 5]],
         },
       ],
@@ -229,6 +260,7 @@ export const DAY2_STAGE: Stage = {
           evidence: "A fleet metric combining active policy coverage and recency of a successful restore test, reported to leadership.",
           cmd: `${C.NAMESPACES_WITH_PVCS}; echo; ${C.POLICY_SUMMARY}`,
           blocking: true,
+          pillar: "policy",
           signals: [["observability", 4]],
         },
         {
@@ -236,6 +268,8 @@ export const DAY2_STAGE: Stage = {
           label: "Compliance evidence produced routinely, not assembled during audits",
           why: "SOC 2 auditors expect documented evidence that backup procedures operate as designed; PCI-DSS and HIPAA add retention requirements. Producing this on a cadence turns audit prep into a download.",
           evidence: "A recurring evidence pack: coverage report, job outcomes, restore test results, retention configuration.",
+          pillar: "security",
+          pillar2: "policy",
           signals: [["observability", 4]],
         },
         {
@@ -243,6 +277,7 @@ export const DAY2_STAGE: Stage = {
           label: "New applications and business units protected with zero manual configuration",
           why: "Level 5 coverage: label conventions enforced at admission or by GitOps templates, so protection is a property of deployment rather than a follow-up ticket.",
           evidence: "A new namespace created through the standard path is protected without any backup-specific action.",
+          pillar: "policy",
           signals: [["coverage", 5]],
         },
         {
@@ -250,6 +285,7 @@ export const DAY2_STAGE: Stage = {
           label: "In-house Blueprint library with a named owner",
           why: "New engines get adopted continuously. Without an owned library, each one arrives crash-consistent and nobody notices until a restore.",
           evidence: "A version-controlled Blueprint library with an owner and a review cadence.",
+          pillar: "policy",
           signals: [["appconsistency", 5]],
         },
         {
@@ -259,6 +295,8 @@ export const DAY2_STAGE: Stage = {
           evidence: "Application teams restoring their own namespaces within RBAC boundaries, with an audit trail.",
           cmd: C.K10_RBAC,
           conditional: true,
+          pillar: "security",
+          pillar2: "recovery",
           signals: [["central", 5]],
         },
       ],

@@ -7,13 +7,16 @@ import { Chip, Panel, PanelHeader, PanelIntro } from "../ui/panel";
 import { ExternalLinkIcon } from "../ui/icon";
 import {
   DIMENSIONS,
+  matchesPillar,
   ocCommandFor,
   statusOf,
   type ChecklistItem,
   type ChecklistSection,
   type ItemStatus,
+  type PillarId,
   type StatusMap,
 } from "../../lib/checklist-data";
+import { PillarTag } from "./pillar-filter";
 
 /**
  * Status is carried on the left edge of the row rather than as a background
@@ -94,6 +97,11 @@ function ItemRow({
           </p>
 
           <div className="flex items-center gap-x-3 gap-y-1.5 flex-wrap mt-2">
+            {/* Pillar first, then maturity signals. The order encodes the axes:
+                pillar answers "whose job is this", the signals answer "what
+                level does this evidence". Both are metadata about the item, so
+                they share a row rather than competing for the eye. */}
+            <PillarTag item={item} />
             {item.signals.map(([dim, level]) => (
               <span
                 key={`${dim}-${level}`}
@@ -174,6 +182,7 @@ export function SectionCard({
   notes,
   onStatus,
   onNote,
+  pillar = null,
   // Collapsed by default. A stage opens as a scannable list of section titles
   // with their counts, so the reader chooses where to start rather than landing
   // mid-way down eleven expanded items. The sidebar jump list mirrors it.
@@ -184,9 +193,18 @@ export function SectionCard({
   notes: Record<string, string>;
   onStatus: (id: string, status: ItemStatus) => void;
   onNote: (id: string, note: string) => void;
+  /** Active pillar filter, or null for everything. */
+  pillar?: PillarId | null;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+
+  const visible = pillar ? section.items.filter(i => matchesPillar(i, pillar)) : section.items;
+
+  // Counts stay whole-section even while filtered. The chips report the state of
+  // the section, not the state of the current view — a "3/8" that quietly became
+  // "3/3" because a filter was on would make the tool agree with a mistaken
+  // reading instead of correcting it.
   const done = section.items.filter(i => {
     const s = statusOf(statuses, i.id);
     return s === "pass" || s === "na";
@@ -195,6 +213,15 @@ export function SectionCard({
     i => i.blocking && !["pass", "na"].includes(statusOf(statuses, i.id)),
   ).length;
 
+  // A filter that leaves a section empty removes it. Rendering an empty card
+  // would make the reader confirm, section by section, that there is nothing
+  // there — the point of the filter is to shorten the page.
+  if (pillar && visible.length === 0) return null;
+
+  // While filtered, sections open on their own: having narrowed 32 items to 9,
+  // being made to expand four collapsed cards to see them is the wrong default.
+  const expanded = open || (pillar !== null && visible.length > 0);
+
   return (
     // Anchor target for the sidebar jump list. scroll-mt clears the sticky header.
     <Panel id={`section-${section.id}`} className="scroll-mt-20">
@@ -202,9 +229,12 @@ export function SectionCard({
         accent
         title={section.title}
         onClick={() => setOpen(v => !v)}
-        expanded={open}
+        expanded={expanded}
         meta={
           <>
+            {pillar && visible.length < section.items.length && (
+              <Chip tone="neutral">{visible.length} shown</Chip>
+            )}
             {blockersOpen > 0 && <Chip tone="danger">{blockersOpen} blocking</Chip>}
             <Chip tone={done === section.items.length ? "brand" : "neutral"}>
               {done}/{section.items.length}
@@ -212,11 +242,11 @@ export function SectionCard({
           </>
         }
       />
-      {open && (
+      {expanded && (
         <>
           {section.intro && <PanelIntro>{section.intro}</PanelIntro>}
           <ul className="divide-y divide-line">
-            {section.items.map(item => (
+            {visible.map(item => (
               <ItemRow
                 key={item.id}
                 item={item}

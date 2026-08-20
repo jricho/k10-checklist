@@ -1,5 +1,5 @@
-import type { ChecklistItem, ItemStatus, Stage, StageId } from "./checklist-types";
-import { STAGE_ORDER } from "./checklist-types";
+import type { ChecklistItem, ItemStatus, PillarId, Stage, StageId } from "./checklist-types";
+import { PILLAR_ORDER, PILLARS, STAGE_ORDER } from "./checklist-types";
 import { POC_STAGE } from "./stages/poc";
 import { PREPROD_STAGE } from "./stages/preprod";
 import { GOLIVE_STAGE } from "./stages/golive";
@@ -38,6 +38,62 @@ export function itemsForStage(stageId: StageId): ChecklistItem[] {
 export function stagesUpTo(stageId: StageId): Stage[] {
   const idx = STAGE_ORDER.indexOf(stageId);
   return STAGES.filter(s => STAGE_ORDER.indexOf(s.id) <= idx);
+}
+
+/**
+ * Does this item belong to the given pillar, primarily or secondarily?
+ *
+ * The filter matches on either. See the note on `pillar2` in checklist-types:
+ * showing a reviewer one extra item costs a line of reading, hiding a relevant
+ * one costs them the finding.
+ */
+export function matchesPillar(item: ChecklistItem, pillar: PillarId): boolean {
+  return item.pillar === pillar || item.pillar2 === pillar;
+}
+
+export function itemsForPillar(pillar: PillarId, items: ChecklistItem[] = ALL_ITEMS): ChecklistItem[] {
+  return items.filter(i => matchesPillar(i, pillar));
+}
+
+export interface PillarCount {
+  pillar: PillarId;
+  name: string;
+  short: string;
+  /** Items the filter would show — primary or secondary. */
+  matched: number;
+  /** Items this pillar owns outright. These four numbers sum to the item count. */
+  owned: number;
+  passed: number;
+  outstandingBlockers: number;
+}
+
+/**
+ * Per-pillar tallies over an arbitrary item set, so the same function serves the
+ * whole checklist and a single stage.
+ *
+ * Both numbers are reported deliberately. `owned` partitions and therefore adds
+ * up, which is what makes the four figures trustworthy; `matched` is what the
+ * filter will actually show. Presenting only the second would leave a reader
+ * adding four numbers to something larger than the total and wondering what they
+ * had missed.
+ */
+export function pillarCounts(statuses: StatusMap, items: ChecklistItem[] = ALL_ITEMS): PillarCount[] {
+  return PILLAR_ORDER.map(pillar => {
+    const matched = items.filter(i => matchesPillar(i, pillar));
+    return {
+      pillar,
+      name: PILLARS[pillar].name,
+      short: PILLARS[pillar].short,
+      matched: matched.length,
+      owned: items.filter(i => i.pillar === pillar).length,
+      passed: matched.filter(i => statusOf(statuses, i.id) === "pass").length,
+      outstandingBlockers: matched.filter(i => {
+        if (!i.blocking) return false;
+        const s = statusOf(statuses, i.id);
+        return s !== "pass" && s !== "na";
+      }).length,
+    };
+  });
 }
 
 export type StatusMap = Record<string, ItemStatus>;
@@ -177,9 +233,27 @@ export function validateChecklistData(): string[] {
         for (const [dim, level] of item.signals) {
           if (level < 1 || level > 5) problems.push(`Item ${item.id} has out-of-range level for ${dim}`);
         }
+        if (!PILLARS[item.pillar]) problems.push(`Item ${item.id} has unknown pillar: ${item.pillar}`);
+        if (item.pillar2 && !PILLARS[item.pillar2]) {
+          problems.push(`Item ${item.id} has unknown secondary pillar: ${item.pillar2}`);
+        }
+        // A duplicated pillar would inflate the matched count without widening
+        // the filter — silent, and it makes the two tallies disagree for no reason.
+        if (item.pillar2 && item.pillar2 === item.pillar) {
+          problems.push(`Item ${item.id} repeats its primary pillar as its secondary`);
+        }
       }
     }
   }
+
+  // Primary pillars must partition the item set. This is the invariant that lets
+  // the UI print four numbers and claim they add up; if it ever fails, the
+  // honest fix is to correct the data, not to soften the claim.
+  const owned = PILLAR_ORDER.reduce((n, p) => n + ALL_ITEMS.filter(i => i.pillar === p).length, 0);
+  if (owned !== ALL_ITEMS.length) {
+    problems.push(`Primary pillars cover ${owned} items but there are ${ALL_ITEMS.length}`);
+  }
+
   return problems;
 }
 
