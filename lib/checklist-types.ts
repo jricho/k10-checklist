@@ -83,6 +83,16 @@ export interface Stage {
   strapline: string;
   /** Corresponding phase of the 100-day roadmap, for traceability. */
   roadmapPhase: string;
+  /**
+   * Sections of the Kasten Resilience Playbook that this stage draws on.
+   *
+   * Provenance, not decoration: a customer who asks "where does this item come
+   * from" should be one click from the paragraph it came from, and a reviewer
+   * should be able to check the stage against its source. The playbook ships at
+   * public/kasten-resilience-playbook.pdf so the link resolves in a self-hosted
+   * or air-gapped deployment.
+   */
+  playbookRefs?: string[];
   /** The single question this stage answers. */
   goal: string;
   /** Human-readable gate. Rendered next to the stage's blocking-item count. */

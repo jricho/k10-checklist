@@ -118,6 +118,20 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">{stage.name}</h2>
           <p className="text-sm text-gray-600 max-w-3xl">{stage.goal}</p>
+          {stage.playbookRefs && stage.playbookRefs.length > 0 && (
+            <p className="text-[11px] text-gray-400 mt-2">
+              Drawn from{" "}
+              <a
+                href="/kasten-resilience-playbook.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[#219150] hover:underline"
+              >
+                The Kasten Resilience Playbook
+              </a>{" "}
+              — {stage.playbookRefs.join(" · ")}
+            </p>
+          )}
         </div>
         <div className="shrink-0 text-right">
           <div

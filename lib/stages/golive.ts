@@ -17,6 +17,13 @@ export const GOLIVE_STAGE: Stage = {
   name: "Go-Live",
   strapline: "Observable, alerting, DR designed and signed off",
   roadmapPhase: "Roadmap Phase 3 — Optimize & Harden (Days 46–75, M7–M9) + cutover",
+  playbookRefs: [
+    "§2.3 Level 4 descriptors",
+    "§3.3 Incident response integration",
+    "§4.3 Disaster recovery topology",
+    "§4.7 Disaster recovery patterns",
+    "§5 Roadmap Phase 3",
+  ],
   goal:
     "Make failure visible, make recovery executable by someone who did not design it, and obtain sign-off against measured numbers rather than intentions.",
   maturityTarget: "Establishes Level 4 — recoverability proven, not assumed",
@@ -114,7 +121,8 @@ export const GOLIVE_STAGE: Stage = {
           id: "dr-topology-per-tier",
           label: "Cold / warm / export-only topology chosen per workload tier",
           why: "One DR topology for everything either overspends on non-production or under-delivers on the workloads with a real SLA. The choice should fall out of the RPO/RTO table, and the measured restore times from Pre-Production tell you whether the choice is achievable.",
-          evidence: "Each tier mapped to a topology, with the measured restore time next to the RTO commitment.",
+          evidence:
+            "The Workload tiers & DR topology panel completed: every tier has an RPO target, an RTO target, a chosen topology, and the measured restore time from Pre-Production alongside it. No unresolved mismatch warnings, or each one explained.",
           blocking: true,
           signals: [["dr", 4]],
         },
