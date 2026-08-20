@@ -245,12 +245,21 @@ seven numbers on one panel is repetition rather than density.
    pairing for a technical surface rather than a marketing one? Geist is loaded
    but not applied, and the Arial override defeats both.
 2. ~~**Neutral ramp.**~~ **Resolved.** Ramp B chosen from a three-way comparison
-   rendered at `/design`: cool slate, mid-tones pushed darker. Every text token
-   clears 7:1 in light mode and 6.3:1 in dark — AAA rather than AA, because most
-   of this interface sits at 11–13px where the 4.5:1 floor passes a checker and
-   still tires a reader. Values and their measured ratios are in `globals.css`.
-   If the ramp is revisited, restore `app/design/` from git history rather than
-   comparing hex values in the abstract.
+   rendered at `/design`: cool slate, mid-tones pushed darker. The target is 7:1
+   — AAA rather than AA — because most of this interface sits at 11–13px where
+   the 4.5:1 floor passes a checker and still tires a reader.
+
+   The earlier claim here, that "every text token clears 7:1 in light mode and
+   6.3:1 in dark", was measured against the white card only. There are two
+   surfaces: a card and a tinted page. `ink`, `ink-soft` and `ink-muted` clear 7:1
+   on both surfaces in both modes; **`ink-faint` does not** — 6.22:1 on the page
+   in light mode and 6.35:1 on the card in dark. It is AA, it is the lightest
+   level permitted anywhere, and it is reserved for captions, units and counts.
+   Both figures for every level are in `globals.css`, and `lib/contrast.ts` will
+   recompute them.
+
+   `/design` is now a permanent route rather than something to restore from git
+   history — build the comparison, do not compare hex values in the abstract.
 3. ~~**Pillar assignment.**~~ **Resolved.** Primary plus optional secondary.
    `pillar` is required and exactly one, so the four owned counts partition the
    112 and the figures can be trusted to add up; `pillar2` is optional and the
