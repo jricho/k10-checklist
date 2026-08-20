@@ -17,7 +17,13 @@ import {
   type ExportScope,
 } from "../lib/export-pdf";
 import { STAGES, STAGES_BY_ID, overallProgress } from "../lib/checklist-data";
-import { ChevronRightIcon, DownloadIcon, ExternalLinkIcon } from "../components/ui/icon";
+import {
+  ChevronRightIcon,
+  DocumentIcon,
+  DownloadIcon,
+  ExternalLinkIcon,
+  SpreadsheetIcon,
+} from "../components/ui/icon";
 
 // The page is now composition only: state comes from `useAssessment`, structure
 // from `lib/checklist-data`, output from `lib/export-pdf`. The original version
@@ -183,13 +189,48 @@ export default function ChecklistPage() {
             of scope, and the stage sequence as a named progression rather than a
             chain of instructions. The method belongs in each stage header, where
             it already lives alongside that stage's exit criteria. */}
-        <header className="mb-6 reveal" style={{ "--reveal-index": 0 } as React.CSSProperties}>
+        <header className="mb-6 reveal" style={{ "--reveal-index": "0" } as React.CSSProperties}>
           <p className="font-mono text-2xs font-semibold uppercase tracking-[0.16em] text-ink-muted mb-2">
             Veeam Kasten · Readiness assessment
           </p>
-          <h1 className="font-display text-2xl font-bold text-ink mb-3 max-w-[24ch] sm:max-w-none">
-            Readiness and operating maturity
-          </h1>
+          {/* Title row carries the reference documents.
+              They were a labelled link row below the standfirst, which read as a
+              third block of text in a masthead that only needed two. As bordered
+              icon affordances on the title's baseline they occupy the empty space
+              to the right of a short title, and they read as apparatus —
+              something you reach for — rather than as more prose. */}
+          <div className="flex items-start justify-between gap-6 mb-3">
+            <h1 className="font-display text-2xl font-bold text-ink max-w-[24ch] sm:max-w-none">
+              Readiness and operating maturity
+            </h1>
+            <div className="flex items-center gap-2 shrink-0 pt-0.5">
+              {/* Icon-only, so each needs an accessible name and a tooltip: the
+                  glyph alone never conveys which document it opens. */}
+              <a
+                href="/kasten-resilience-playbook.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="The Kasten Resilience Playbook (PDF) — opens in a new tab"
+                aria-label="Open The Kasten Resilience Playbook, PDF, in a new tab"
+                className="group flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink-muted transition-colors hover:border-brand-600 hover:text-brand-700 hover:bg-brand-50"
+              >
+                <DocumentIcon className="h-7 w-7" />
+                <span className="hidden xl:inline text-sm font-semibold">Playbook</span>
+                <ExternalLinkIcon className="text-ink-faint group-hover:text-brand-700" />
+              </a>
+              <a
+                href="/kasten-maturity-self-assessment.xlsx"
+                download
+                title="Maturity Self-Assessment workbook (XLSX) — downloads"
+                aria-label="Download the Maturity Self-Assessment workbook, XLSX"
+                className="group flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink-muted transition-colors hover:border-brand-600 hover:text-brand-700 hover:bg-brand-50"
+              >
+                <SpreadsheetIcon className="h-7 w-7" />
+                <span className="hidden xl:inline text-sm font-semibold">Workbook</span>
+                <DownloadIcon className="text-ink-faint group-hover:text-brand-700" />
+              </a>
+            </div>
+          </div>
           <p className="text-base text-ink-soft max-w-[70ch] leading-relaxed">
             A staged verification of a Veeam Kasten deployment — from proof of concept, through production readiness,
             to day-2 operating maturity — evidenced against a live cluster and exported as a signable record.
@@ -221,26 +262,6 @@ export default function ChecklistPage() {
             ))}
           </ol>
 
-          {/* Both files ship in public/ so the links resolve in a self-hosted or
-              air-gapped deployment rather than pointing at an intranet. */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 pt-4 border-t border-line">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Reference</span>
-            <a
-              href="/kasten-resilience-playbook.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium text-brand-700 hover:underline"
-            >
-              The Kasten Resilience Playbook (PDF) <ExternalLinkIcon />
-            </a>
-            <a
-              href="/kasten-maturity-self-assessment.xlsx"
-              download
-              className="text-xs font-medium text-brand-700 hover:underline"
-            >
-              Maturity Self-Assessment workbook (XLSX) <DownloadIcon />
-            </a>
-          </div>
         </header>
 
         {ctrl.persistError && (
@@ -255,7 +276,7 @@ export default function ChecklistPage() {
         {/* Engagement details */}
         <div
           className="bg-surface rounded-card border border-line shadow-card p-5 mb-5 reveal"
-          style={{ "--reveal-index": 1 } as React.CSSProperties}
+          style={{ "--reveal-index": "1" } as React.CSSProperties}
         >
           <h2 className="text-xs font-semibold text-ink-muted mb-4 uppercase tracking-wide">Assessment details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -287,12 +308,12 @@ export default function ChecklistPage() {
           <Sidebar activeStage={activeStage} statuses={statuses} onSelect={setActiveStage} />
 
           <div className="flex-1 min-w-0">
-            <div className="reveal" style={{ "--reveal-index": 2 } as React.CSSProperties}>
+            <div className="reveal" style={{ "--reveal-index": "2" } as React.CSSProperties}>
               <StageNav active={activeStage} statuses={statuses} onSelect={setActiveStage} />
               <StageHeader stageId={activeStage} statuses={statuses} />
             </div>
 
-        <div className="space-y-5 reveal" style={{ "--reveal-index": 3 } as React.CSSProperties}>
+        <div className="space-y-5 reveal" style={{ "--reveal-index": "3" } as React.CSSProperties}>
           {stage.sections.map(section => (
             <SectionCard
               key={section.id}
@@ -305,7 +326,7 @@ export default function ChecklistPage() {
           ))}
         </div>
 
-        <div className="mt-8 space-y-6 reveal" style={{ "--reveal-index": 4 } as React.CSSProperties}>
+        <div className="mt-8 space-y-6 reveal" style={{ "--reveal-index": "4" } as React.CSSProperties}>
           <div id="architecture" className="scroll-mt-20">
             <ArchitecturePanel
               tiers={assessment.tiers}
