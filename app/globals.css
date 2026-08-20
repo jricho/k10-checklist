@@ -138,15 +138,32 @@
   --color-surface-sunken: #eef2f6;
   --color-line: #d3dce5;
   --color-line-strong: #a7b4c2;
-  /* Ramp B ink. Every level clears 7:1, which is AAA for normal text and the
-     right target rather than AA's 4.5 — this interface puts most of its content
-     at 11–13px, where the AA floor proved legible in a contrast checker and
-     tiring on a screen. `ink-faint` is now the lightest text permitted anywhere,
-     and at 7.26:1 it is darker than the *body* text of most interfaces. */
-  --color-ink: #0b1118; /* 18.96:1 */
-  --color-ink-soft: #2b3540; /* 12.46:1 */
-  --color-ink-muted: #3c4854; /* 9.35:1 */
-  --color-ink-faint: #4c5865; /* 7.26:1 — lightest text permitted anywhere */
+  /* Ramp B ink. The target is 7:1 — AAA for normal text — rather than AA's 4.5,
+     because this interface puts most of its content at 11–13px, where the AA
+     floor proved legible in a contrast checker and tiring on a screen.
+
+     Two surfaces, two figures. Text mostly sits on a white card, but headings,
+     straplines and section labels sit directly on the page, which is tinted
+     (#e9eef3). Every ratio against the page is about 14% lower in light mode, so
+     a level that clears 7:1 on a card does not automatically clear it on the
+     page — and an earlier version of this comment quoted only the card figure,
+     which overstated the ramp.
+
+     `ink-faint` is the one level that falls short: AA rather than AAA, on the
+     page in light mode (6.22:1) and on the card in dark mode (6.35:1). It is the
+     lightest text permitted anywhere and is reserved for captions, units and
+     counts. Anything a reader has to parse rather than glance at uses `ink-muted`
+     or darker, all of which clear 7:1 on both surfaces in both modes.
+
+     Dark mode inverts the relationship: the page (#080d13) is darker than the
+     card (#0e1620), so page ratios are the *higher* pair there. Dark mode's weak
+     surface is the card, not the page.
+
+     Figures below are card · page, light mode. Measured with lib/contrast.ts. */
+  --color-ink: #0b1118; /* 18.96:1 · 16.24:1 */
+  --color-ink-soft: #2b3540; /* 12.46:1 · 10.67:1 */
+  --color-ink-muted: #3c4854; /* 9.35:1 · 8.01:1 — darkest level safe everywhere */
+  --color-ink-faint: #4c5865; /* 7.26:1 · 6.22:1 — lightest permitted; AA on the page */
 
   /* --- Typography --------------------------------------------------------
      Display: Space Grotesk — geometric, engineered, slightly idiosyncratic.
@@ -194,17 +211,30 @@
 /* ============================================================================
    Atmosphere
    ============================================================================
-   Depth from two cheap layers rather than a flat fill: a pair of very low
-   opacity radial washes to give the page a light source, and a fine noise
-   texture so large empty areas do not read as dead space. Both are decorative,
-   both sit behind everything, neither affects contrast of any text.
+   One flat colour. No noise texture, no radial washes.
+
+   This replaced a layered treatment — a fine fractalNoise tile plus a blue and a
+   green radial wash — that the general design brief asks for and that this
+   application turned out not to want. Three reasons, in the order they matter:
+
+   1. The page is not the subject. Density is the hard problem here: four stage
+      cards, a six-column tier table, per-item command blocks and a seven-axis
+      radar all compete for a reader's attention while a customer decides whether
+      to sign. A textured background is one more thing in that competition, and
+      it is the one carrying no information.
+   2. It is screen-shared and screenshotted constantly. Under compression the
+      noise tile turns to mush and the washes band; both look like artefacts of a
+      bad connection rather than deliberate design.
+   3. The PDF has neither. The screen and the export are supposed to read as the
+      same document, and the export is a flat white page.
+
+   Card separation therefore rests on `border-line` and `--shadow-card` alone.
+   That is deliberate but tight: white cards on #e9eef3 is a 1.17:1 step, so the
+   border is load-bearing and must not be softened. `/design` renders the
+   alternatives with measured ratios if this is ever revisited.
    ========================================================================== */
 
 :root {
-  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  --wash:
-    radial-gradient(70rem 40rem at 12% -8%, rgb(31 111 208 / 0.05), transparent 60%),
-    radial-gradient(60rem 34rem at 92% 4%, rgb(0 179 86 / 0.05), transparent 62%);
   --page-bg: #e9eef3;
 }
 
@@ -225,8 +255,12 @@
     /* Inverted ramp B. The light steps are recomputed rather than mirrored:
        simply reversing the scale gives a `gray-400` of #a7b4c2, which is a
        perfectly good border but far lighter than a mid-tone needs to be for
-       text on a dark surface. These are measured against the dark surface
-       below — the faintest is 6.35:1. */
+       text on a dark surface.
+
+       Figures are against the card surface (#0e1620), which is the weaker of the
+       two surfaces in dark mode — the page at #080d13 is darker, so page ratios
+       run roughly 7% higher. The faintest level is 6.35:1 on the card and
+       6.80:1 on the page: AA, not AAA, and reserved accordingly. */
     --color-gray-50: #080d13;
     --color-gray-100: #111820;
     --color-gray-200: #1e2833; /* borders on dark */
@@ -244,10 +278,11 @@
     --color-surface-sunken: #080d13;
     --color-line: #1e2833;
     --color-line-strong: #2c3845;
-    --color-ink: #f2f5f9; /* 16.64:1 */
-    --color-ink-soft: #ccd6e0; /* 12.36:1 */
-    --color-ink-muted: #aab7c5; /* 8.91:1 */
-    --color-ink-faint: #8d9aa9; /* 6.35:1 */
+    /* card · page, as in the light block above. */
+    --color-ink: #f2f5f9; /* 16.64:1 · 17.83:1 */
+    --color-ink-soft: #ccd6e0; /* 12.36:1 · 13.24:1 */
+    --color-ink-muted: #aab7c5; /* 8.91:1 · 9.55:1 — darkest level safe everywhere */
+    --color-ink-faint: #8d9aa9; /* 6.35:1 · 6.80:1 — lightest permitted; AA on the card */
 
     /* Brand steps lighten so text and links stay legible on dark surfaces.
        The tint and the deepest step have to flip together with them: leaving
@@ -283,10 +318,14 @@
     --color-teal-500: #3fb9ac;
     --color-teal-700: #7fd6cb;
 
+    /* Flat here too — and dark mode carries the change *worse*, not better.
+       `--color-surface` #0e1620 against a #080d13 page measures 1.07:1, against
+       1.17:1 in light mode, because both values sit near the floor of the ramp
+       where sRGB has little room left. So the border and the shadow are doing
+       even more of the work here than they are in light mode. If a card ever
+       looks like it has no edge, this is why, and the fix is `--color-line`
+       rather than lifting the page. */
     --page-bg: #080d13;
-    --wash:
-      radial-gradient(70rem 40rem at 12% -8%, rgb(31 111 208 / 0.14), transparent 60%),
-      radial-gradient(60rem 34rem at 92% 4%, rgb(0 179 86 / 0.1), transparent 62%);
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
     --shadow-raised: 0 4px 6px -2px rgb(0 0 0 / 0.45), 0 12px 20px -8px rgb(0 0 0 / 0.55);
   }
@@ -306,18 +345,16 @@ body {
      while paying to download Geist. Consume the token instead of fighting it. */
   font-family: var(--font-sans);
   background-color: var(--page-bg);
-  background-image: var(--noise), var(--wash);
-  background-size: 160px 160px, auto;
-  background-attachment: fixed;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   text-rendering: optimizeLegibility;
 }
 
-/* Noise is decoration; keep it out of the accessibility and print layers. */
+/* Print on white, not on the page tint: a tinted background either wastes toner
+   or is silently dropped by the driver, and this app's evidence goes into change
+   records that get printed. */
 @media print {
   body {
-    background-image: none;
     background-color: #ffffff;
   }
 }
