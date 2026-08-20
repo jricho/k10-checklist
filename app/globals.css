@@ -1,26 +1,408 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================================
+   Design tokens — Veeam Kasten readiness
+   ============================================================================
+
+   Everything visual comes from here. Two rules:
+
+   1. No component hardcodes a colour. Previously `#219150` appeared 29 times
+      across eight files, which is why changing the brand green was a
+      find-and-replace rather than an edit.
+
+   2. Tailwind's default `gray` ramp is deliberately overridden with the slate
+      scale below. Because Tailwind v4 emits utilities as
+      `color: var(--color-gray-500)`, redefining the variable reskins all ~240
+      existing `gray-*` usages without touching a single component — and lets
+      dark mode work by flipping the ramp at runtime.
+
+   --------------------------------------------------------------------------
+   Contrast: the brand green problem
+   --------------------------------------------------------------------------
+   `#00B356` is the brand green of record, and it measures 2.77:1 against white.
+   That is below WCAG AA for text (4.5:1) and below the 3:1 floor for a non-text
+   UI indicator. It cannot be a button fill with white text on a light surface,
+   and no amount of design conviction changes the measurement.
+
+   So the brand is a ramp, not a colour. Same hue family throughout, stepped to
+   the job:
+
+     brand-500  #00B356   2.77:1 on white   the brand accent. Excellent on dark
+                                            surfaces (6.02:1 on gray-900), so it
+                                            carries indicators, progress fills
+                                            and maturity bars — never text on
+                                            light, and never a bare fill on
+                                            light without a border.
+     brand-600  #009149   4.08:1            UI components and large/bold text
+     brand-700  #007A3D   5.45:1            body text, links, primary fills
+                                            with white text
+     brand-800  #00602F   7.74:1            hover, and text on brand tints
+
+   Every value below was measured, not eyeballed. Where a value sits between
+   thresholds the comment says which use it is licensed for.
+   ========================================================================== */
+
+@theme {
+  /* --- Brand ------------------------------------------------------------- */
+  --color-brand-50: #e9faf1;
+  --color-brand-100: #c6f2db;
+  --color-brand-200: #8ce7ba;
+  --color-brand-300: #4bd694;
+  --color-brand-400: #00c662; /* on-dark accent */
+  --color-brand-500: #00b356; /* brand of record — indicator only on light */
+  --color-brand-600: #009149; /* 4.08:1 — UI, large text */
+  --color-brand-700: #007a3d; /* 5.45:1 — text, links, fills */
+  --color-brand-800: #00602f; /* 7.74:1 — hover, text on tint */
+  --color-brand-900: #004a25;
+
+  /* --- Slate neutrals ----------------------------------------------------
+     Ramp B, chosen from the /design comparison: same cool hue, mid-tones pushed
+     darker. Overrides Tailwind's `gray`, so `text-gray-500` etc. pick these up.
+
+     The deliberate departure from a conventional ramp is gray-400 at 6.18:1
+     rather than Tailwind's ~2.6:1. This app uses that step for small labels that
+     carry meaning — captions, units, counts — and at the default value none of
+     them met AA. The cost is less separation between 400 and 500; the benefit is
+     that no step in the ramp is unusable for text. */
+  --color-gray-50: #f5f8fa;
+  --color-gray-100: #e9eef3;
+  --color-gray-200: #d3dce5; /* 1.39:1 — borders and fills only */
+  --color-gray-300: #a7b4c2; /* 2.11:1 — stronger border, decorative */
+  --color-gray-400: #55636f; /* 6.18:1 — smallest text permitted */
+  --color-gray-500: #46535f; /* 7.89:1 */
+  --color-gray-600: #37434f; /* 10.10:1 */
+  --color-gray-700: #28323c; /* 13.03:1 */
+  --color-gray-800: #1b232c; /* 15.87:1 */
+  --color-gray-900: #111820; /* 17.87:1 */
+  --color-gray-950: #080d13; /* 19.49:1 */
+
+  /* Same ramp under its real name, for new code. Not inverted in dark mode —
+     use these for anything intrinsically dark, such as the command panes. */
+  --color-slate-50: #f5f8fa;
+  --color-slate-100: #e9eef3;
+  --color-slate-200: #d3dce5;
+  --color-slate-300: #a7b4c2;
+  --color-slate-400: #55636f;
+  --color-slate-500: #46535f;
+  --color-slate-600: #37434f;
+  --color-slate-700: #28323c;
+  --color-slate-800: #1b232c;
+  --color-slate-900: #111820;
+  --color-slate-950: #080d13;
+
+  /* --- Structural accents ------------------------------------------------
+     Sharp enterprise blue and teal. Used for information and for the
+     non-status accents in charts, never for pass/fail meaning. */
+  --color-ocean-50: #ecf3fd;
+  --color-ocean-500: #1f6fd0; /* 4.95:1 */
+  --color-ocean-600: #1a5cad;
+  --color-ocean-700: #164a8c;
+  --color-teal-50: #e7f6f4;
+  --color-teal-500: #0e8c82; /* 4.12:1 — UI and large text */
+  --color-teal-600: #0b7469; /* text */
+  --color-teal-700: #095c54;
+
+  /* --- Semantic status ---------------------------------------------------
+     Pass / Fail / N-A / pending. Meaning is never carried by colour alone —
+     every state also renders a text label — but these still have to be legible
+     to a colourblind auditor reading a projected screen. */
+  --color-green-50: #eaf7ef;
+  --color-green-100: #c9edd8;
+  --color-green-200: #8fdcb2;
+  --color-green-500: #00b356;
+  --color-green-600: #009149;
+  --color-green-700: #007a3d;
+  --color-green-800: #00602f; /* 7.02:1 on green-50 */
+  --color-red-50: #fdeeec;
+  --color-red-100: #fad7d3;
+  --color-red-200: #f3b1a9;
+  --color-red-500: #c0392b; /* 5.44:1 */
+  --color-red-600: #a82e22;
+  --color-red-700: #96241a; /* 7.26:1 on red-50 */
+  --color-red-800: #7d1c14;
+  --color-amber-50: #fdf5e6;
+  --color-amber-100: #f9e6c2;
+  --color-amber-200: #f0cd8c;
+  --color-amber-300: #e3b25e;
+  --color-amber-500: #b8791a; /* 3.63:1 — UI fills only */
+  --color-amber-600: #92610a; /* 5.33:1 — text */
+  --color-amber-700: #7a5008; /* 6.51:1 on amber-50 */
+  --color-amber-800: #653f05;
+  --color-amber-900: #4d3004;
+
+  /* --- Surfaces ----------------------------------------------------------
+     Semantic, so dark mode is a token flip rather than a component rewrite.
+     Components use bg-surface / border-line / text-ink, not bg-white. */
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #eef2f6;
+  --color-line: #d3dce5;
+  --color-line-strong: #a7b4c2;
+  /* Ramp B ink. Every level clears 7:1, which is AAA for normal text and the
+     right target rather than AA's 4.5 — this interface puts most of its content
+     at 11–13px, where the AA floor proved legible in a contrast checker and
+     tiring on a screen. `ink-faint` is now the lightest text permitted anywhere,
+     and at 7.26:1 it is darker than the *body* text of most interfaces. */
+  --color-ink: #0b1118; /* 18.96:1 */
+  --color-ink-soft: #2b3540; /* 12.46:1 */
+  --color-ink-muted: #3c4854; /* 9.35:1 */
+  --color-ink-faint: #4c5865; /* 7.26:1 — lightest text permitted anywhere */
+
+  /* --- Typography --------------------------------------------------------
+     Display: Space Grotesk — geometric, engineered, slightly idiosyncratic.
+     Body:    Manrope — open apertures, holds up at 11–13px where most of this
+              interface lives.
+     Mono:    JetBrains Mono — chosen for one reason: it disambiguates l / 1 / I
+              and 0 / O. These blocks carry kubectl commands a customer will
+              paste into a production shell, so glyph ambiguity is a correctness
+              bug, not a taste question.
+
+     PENDING BRAND CONFIRMATION. See CLAUDE.md section  Decisions still needed. Swapping
+     the face is one line in app/layout.tsx because nothing references a family
+     name directly. */
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-face), var(--font-body), sans-serif;
+  --font-mono: var(--font-code), ui-monospace, monospace;
+
+  /* Scale: tight tracking and leading as size grows, relaxed for reading. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.45;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.55;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.45;
+  --text-lg--letter-spacing: -0.008em;
+  --text-xl: 1.3125rem;
+  --text-xl--line-height: 1.3;
+  --text-xl--letter-spacing: -0.016em;
+  --text-2xl: 1.625rem;
+  --text-2xl--line-height: 1.18;
+  --text-2xl--letter-spacing: -0.022em;
+  --text-3xl: 2.125rem;
+  --text-3xl--line-height: 1.08;
+  --text-3xl--letter-spacing: -0.028em;
+
+  --radius-card: 0.875rem;
+  --shadow-card: 0 1px 2px rgb(11 19 27 / 0.04), 0 1px 3px rgb(11 19 27 / 0.06);
+  --shadow-raised: 0 4px 6px -2px rgb(11 19 27 / 0.06), 0 12px 20px -8px rgb(11 19 27 / 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ============================================================================
+   Atmosphere
+   ============================================================================
+   Depth from two cheap layers rather than a flat fill: a pair of very low
+   opacity radial washes to give the page a light source, and a fine noise
+   texture so large empty areas do not read as dead space. Both are decorative,
+   both sit behind everything, neither affects contrast of any text.
+   ========================================================================== */
+
+:root {
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  --wash:
+    radial-gradient(70rem 40rem at 12% -8%, rgb(31 111 208 / 0.05), transparent 60%),
+    radial-gradient(60rem 34rem at 92% 4%, rgb(0 179 86 / 0.05), transparent 62%);
+  --page-bg: #e9eef3;
 }
+
+/* ============================================================================
+   Dark mode
+   ============================================================================
+   The ramp inverts, so every existing `gray-*` utility flips with it: a
+   `bg-gray-50` surface becomes the darkest slate, `text-gray-900` becomes the
+   lightest. Semantic surface tokens flip alongside.
+
+   The brand ramp does *not* invert — it shifts one step lighter, because
+   #00b356 measures 6.02:1 on gray-900 and is genuinely at its best on dark.
+   This is the one place the "energetic accent" in the brief fully pays off.
+   ========================================================================== */
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Inverted ramp B. The light steps are recomputed rather than mirrored:
+       simply reversing the scale gives a `gray-400` of #a7b4c2, which is a
+       perfectly good border but far lighter than a mid-tone needs to be for
+       text on a dark surface. These are measured against the dark surface
+       below — the faintest is 6.35:1. */
+    --color-gray-50: #080d13;
+    --color-gray-100: #111820;
+    --color-gray-200: #1e2833; /* borders on dark */
+    --color-gray-300: #2c3845;
+    --color-gray-400: #8d9aa9; /* 6.35:1 on the dark surface */
+    --color-gray-500: #aab7c5; /* 8.91:1 */
+    --color-gray-600: #ccd6e0; /* 12.36:1 */
+    --color-gray-700: #dde4ec;
+    --color-gray-800: #eaeff4;
+    --color-gray-900: #f2f5f9; /* 16.64:1 */
+    --color-gray-950: #ffffff;
+
+    --color-surface: #0e1620;
+    --color-surface-raised: #16202b;
+    --color-surface-sunken: #080d13;
+    --color-line: #1e2833;
+    --color-line-strong: #2c3845;
+    --color-ink: #f2f5f9; /* 16.64:1 */
+    --color-ink-soft: #ccd6e0; /* 12.36:1 */
+    --color-ink-muted: #aab7c5; /* 8.91:1 */
+    --color-ink-faint: #8d9aa9; /* 6.35:1 */
+
+    /* Brand steps lighten so text and links stay legible on dark surfaces.
+       The tint and the deepest step have to flip together with them: leaving
+       brand-50 light while brand-800 lightens gives pale-green-on-pale-green at
+       1.55:1 in every brand chip, and the same trap catches brand-900 on the
+       active stage card. Any tint/ink pair must be overridden as a pair. */
+    --color-brand-50: #0d2418; /* tint — fg #b7f0d2 on this is 12.79:1 */
+    --color-brand-100: #133423;
+    --color-brand-200: #2b7d51; /* border on the tint, 3.24:1 */
+    --color-brand-600: #16c96c;
+    --color-brand-700: #2fd07a;
+    --color-brand-800: #8ce7ba; /* 11.11:1 on the tint */
+    --color-brand-900: #b7f0d2; /* 12.79:1 on the tint */
+
+    --color-green-50: #0d2418;
+    --color-green-800: #6ade9f;
+    --color-red-50: #2a1310;
+    --color-red-500: #f2705f;
+    --color-red-700: #ff9585;
+    --color-amber-50: #251a08;
+    --color-amber-600: #e0a94a;
+    --color-amber-700: #f0c274;
+    --color-amber-800: #f5d49a;
+    --color-amber-900: #fae8c9;
+
+    /* Command-tag tints. Same tint/ink pairing rule as the brand ramp: the
+       kubectl and oc tags are ink-on-tint, so both halves must flip together or
+       the tag becomes unreadable in one theme. */
+    --color-ocean-50: #0c1c2e;
+    --color-ocean-500: #5fa3ee;
+    --color-ocean-700: #9cc8f6;
+    --color-teal-50: #08221f;
+    --color-teal-500: #3fb9ac;
+    --color-teal-700: #7fd6cb;
+
+    --page-bg: #080d13;
+    --wash:
+      radial-gradient(70rem 40rem at 12% -8%, rgb(31 111 208 / 0.14), transparent 60%),
+      radial-gradient(60rem 34rem at 92% 4%, rgb(0 179 86 / 0.1), transparent 62%);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+    --shadow-raised: 0 4px 6px -2px rgb(0 0 0 / 0.45), 0 12px 20px -8px rgb(0 0 0 / 0.55);
   }
 }
 
+/* ============================================================================
+   Base
+   ========================================================================== */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* The previous rule here was `font-family: Arial, Helvetica, sans-serif`,
+     which overrode the webfonts loaded in layout.tsx — the app shipped in Arial
+     while paying to download Geist. Consume the token instead of fighting it. */
+  font-family: var(--font-sans);
+  background-color: var(--page-bg);
+  background-image: var(--noise), var(--wash);
+  background-size: 160px 160px, auto;
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+}
+
+/* Noise is decoration; keep it out of the accessibility and print layers. */
+@media print {
+  body {
+    background-image: none;
+    background-color: #ffffff;
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+/* Monospace carries commands that get pasted into production. Slashed zero and
+   disabled ligatures so `!=` and `->` read as the characters actually typed. */
+code,
+kbd,
+pre,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero" 1, "ss01" 1;
+  font-variant-ligatures: none;
+}
+
+/* ============================================================================
+   Interaction
+   ============================================================================
+   One visible focus style everywhere, on the token so it flips with the theme.
+   `:focus-visible` rather than `:focus`, so pointer users never see it and
+   keyboard users always do. Nothing in this codebase may set `outline: none`
+   without providing a replacement.
+   ========================================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-gray-950);
+}
+
+/* Scrollbars inside the captured-output panes, so they do not read as raw OS
+   chrome dropped into an otherwise composed interface. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+/* ============================================================================
+   Page-load reveal
+   ============================================================================
+   One staggered entrance, applied to the top-level regions only. The brief
+   prefers a single high-impact moment over scattered micro-animations, and this
+   interface is dense enough that per-item animation would read as jitter.
+
+   Anything that renders after load — expanding a section, flipping a status —
+   is deliberately instant. In an instrument, feedback that animates reads as
+   latency.
+   ========================================================================== */
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  animation: reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--reveal-index, 0) * 70ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
