@@ -29,6 +29,20 @@ item is answered **Pass / Fail / N/A** — N/A leaves the denominator, so a
 single-cluster customer is not penalised for the multi-cluster section, and an
 explicit Fail records a known, accepted gap rather than an unanswered question.
 
+## Workload tiers and DR topology
+
+A tier table — one row per workload tier with an RPO target, an RTO target, a DR
+topology (cold / warm / export-only) and the restore time actually measured in a
+test. The playbook's RTO characteristic for each topology is shown while you
+choose, and the app flags combinations that cannot work: an export-only topology
+implies a multi-hour to multi-day RTO, so pairing it with a two-hour commitment
+is worth a conversation before go-live rather than during an incident.
+
+Warnings inform, they do not block. They also fire when a *measured* restore
+already exceeds its target — at which point the RTO is not a risk, it is unmet.
+The whole table prints on the cover of the exported PDF, unresolved warnings
+included, because that is precisely what a reviewer should see before signing.
+
 ## Maturity model integration
 
 Each item is tagged with the dimension and level it evidences in the Kasten
@@ -42,15 +56,20 @@ descriptor concerns process, ownership and cadence that no `kubectl` command can
 observe, so the workbook remains the authoritative instrument. The checklist
 evidences a cluster on a date; the workbook judges an organisation over time.
 
-The workbook ships with the app at
-[`public/kasten-maturity-self-assessment.xlsx`](public/kasten-maturity-self-assessment.xlsx)
-and is downloadable from the Maturity panel, so a self-hosted or air-gapped
-deployment has it to hand. Its sheets are *Instructions*, **Self-Assessment**
-(the one you fill in), *Summary* and *Recommendations*.
+## Reference documents
 
-> **Maintainers:** this is a copy of the canonical *Kasten Maturity
-> Self-Assessment*. When the canonical version changes, replace the file here and
-> check the level descriptors still match the tags in `lib/stages/*.ts`.
+Both ship in `public/`, so the links resolve in a self-hosted or air-gapped
+deployment rather than pointing at an intranet:
+
+| File | What it is |
+|---|---|
+| [`kasten-resilience-playbook.pdf`](public/kasten-resilience-playbook.pdf) | The maturity model, day-2 operating model and reference architecture this checklist is built from. Each stage cites the sections it draws on, shown under the stage goal and printed in the export |
+| [`kasten-maturity-self-assessment.xlsx`](public/kasten-maturity-self-assessment.xlsx) | The scoring workbook. Sheets are *Instructions*, **Self-Assessment** (the one you fill in), *Summary* and *Recommendations* |
+
+> **Maintainers:** both are copies of canonical documents. When either changes,
+> replace the file here and check that (a) the workbook's level descriptors still
+> match the `signals` tags in `lib/stages/*.ts`, and (b) the section numbers in
+> each stage's `playbookRefs` still point where they claim to.
 
 ## Verification commands
 

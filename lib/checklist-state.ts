@@ -19,9 +19,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ItemStatus, StageId } from "./checklist-types";
 import type { StatusMap } from "./checklist-data";
+import { defaultTiers, type WorkloadTier } from "./architecture";
 
-/** Bump when the persisted shape changes incompatibly; `migrate` handles the upgrade. */
-export const ASSESSMENT_VERSION = 2;
+/**
+ * Bump when the persisted shape changes incompatibly; `migrate` handles the
+ * upgrade. Note that STORAGE_KEY stays at v2 deliberately: v3 only *adds*
+ * `tiers`, so an existing assessment can be read and upgraded in place rather
+ * than being orphaned by a new key.
+ */
+export const ASSESSMENT_VERSION = 3;
 
 const STORAGE_KEY = "k10-checklist:assessment:v2";
 
@@ -34,7 +40,11 @@ export interface AssessmentMeta {
   clusterName: string;
   date: string;
   assessor: string;
-  /** RPO/RTO targets per tier — the number every DR item is measured against. */
+  /**
+   * Free-text context around the tier table — constraints, exclusions, who set
+   * the targets. The per-tier RPO/RTO numbers themselves live in `tiers`, which
+   * is what the DR items and the topology warnings read.
+   */
   rtoRpoNotes: string;
   /** Named sign-offs, recorded as free text so the PDF can print them verbatim. */
   signoffPlatform: string;
@@ -47,6 +57,12 @@ export interface Assessment {
   meta: AssessmentMeta;
   /** Which stage the UI is showing. Persisted so a reload returns you to your place. */
   activeStage: StageId;
+  /**
+   * Workload tiers with their RPO/RTO targets and DR topology (Playbook §4.3,
+   * §4.7). Seeded with the playbook's three tiers; renameable and extensible,
+   * because "Production" means different things in different estates.
+   */
+  tiers: WorkloadTier[];
   statuses: StatusMap;
   /** Per-item free text — the finding, the accepted risk, the ticket reference. */
   notes: Record<string, string>;
@@ -69,6 +85,7 @@ export function emptyAssessment(): Assessment {
       signoffWorkloadOwner: "",
     },
     activeStage: "poc",
+    tiers: defaultTiers(),
     statuses: {},
     notes: {},
     outputs: { primer: "", cluster: "", policies: "", popeye: "" },
@@ -92,6 +109,9 @@ export function migrate(raw: unknown): Assessment {
     ...input,
     version: ASSESSMENT_VERSION,
     meta: { ...base.meta, ...(input.meta ?? {}) },
+    // A v2 assessment has no tiers, so seed them rather than rendering an empty
+    // table. An explicitly emptied table is respected — only a missing key seeds.
+    tiers: Array.isArray(input.tiers) ? input.tiers : base.tiers,
     statuses: { ...(input.statuses ?? {}) },
     notes: { ...(input.notes ?? {}) },
     outputs: { ...base.outputs, ...(input.outputs ?? {}) },
@@ -178,6 +198,37 @@ export function useAssessment() {
     setAssessment(prev => ({ ...prev, activeStage: stage }));
   }, []);
 
+  const updateTier = useCallback((id: string, patch: Partial<WorkloadTier>) => {
+    setAssessment(prev => ({
+      ...prev,
+      tiers: prev.tiers.map(t => (t.id === id ? { ...t, ...patch } : t)),
+    }));
+  }, []);
+
+  const addTier = useCallback(() => {
+    setAssessment(prev => ({
+      ...prev,
+      tiers: [
+        ...prev.tiers,
+        {
+          // Timestamped so it stays unique even if a tier is removed and another
+          // added — ids are what the PDF and saved state key on.
+          id: `tier-${Date.now().toString(36)}`,
+          name: "",
+          rpoTarget: "",
+          rtoTarget: "",
+          topology: "undecided",
+          measuredRestore: "",
+          notes: "",
+        },
+      ],
+    }));
+  }, []);
+
+  const removeTier = useCallback((id: string) => {
+    setAssessment(prev => ({ ...prev, tiers: prev.tiers.filter(t => t.id !== id) }));
+  }, []);
+
   const reset = useCallback(() => setAssessment(emptyAssessment()), []);
 
   const load = useCallback((raw: unknown) => setAssessment(migrate(raw)), []);
@@ -195,6 +246,9 @@ export function useAssessment() {
       setMeta,
       setOutput,
       setActiveStage,
+      updateTier,
+      addTier,
+      removeTier,
       reset,
       load,
       exportJson,
@@ -209,6 +263,9 @@ export function useAssessment() {
       setMeta,
       setOutput,
       setActiveStage,
+      updateTier,
+      addTier,
+      removeTier,
       reset,
       load,
       exportJson,

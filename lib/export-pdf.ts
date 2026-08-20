@@ -26,6 +26,7 @@ import {
   type StageId,
 } from "./checklist-data";
 import { maturityEvidence } from "./maturity";
+import { describeTier, tierWarnings } from "./architecture";
 
 const VEEAM_GREEN: [number, number, number] = [33, 145, 80];
 const INK: [number, number, number] = [50, 50, 50];
@@ -344,8 +345,31 @@ export async function exportAssessmentPdf({
   }
 
   w.space(2);
-  w.subHeading("RPO / RTO targets");
-  w.paragraph(meta.rtoRpoNotes || "Not recorded.", { colour: meta.rtoRpoNotes ? INK : MUTED });
+  w.subHeading("Workload tiers & DR topology");
+  if (assessment.tiers.length === 0) {
+    w.paragraph("No workload tiers defined.", { colour: MUTED });
+  } else {
+    for (const tier of assessment.tiers) {
+      w.keyValue(tier.name.trim() || "(unnamed tier)", describeTier(tier));
+      if (tier.notes.trim()) {
+        w.paragraph(tier.notes.trim(), { size: 8, indent: 45, colour: MUTED, style: "italic" });
+      }
+    }
+    // Printed rather than suppressed: an unresolved mismatch between a stated RTO
+    // and the chosen topology is exactly the thing a reviewer should see before
+    // signing, not something the tool should quietly hide because it is untidy.
+    const warnings = tierWarnings(assessment.tiers).filter(x => x.severity === "warn");
+    if (warnings.length > 0) {
+      w.space(1);
+      for (const warning of warnings) {
+        w.paragraph(`!  ${warning.text}`, { size: 8, colour: AMBER, indent: 2 });
+      }
+    }
+  }
+  if (meta.rtoRpoNotes.trim()) {
+    w.space(1);
+    w.paragraph(meta.rtoRpoNotes.trim(), { size: 8.5 });
+  }
 
   w.space(2);
   w.subHeading("Sign-off");
@@ -354,6 +378,17 @@ export async function exportAssessmentPdf({
   w.keyValue("Workload owner", meta.signoffWorkloadOwner);
 
   w.space(3);
+  w.subHeading("Reference documents");
+  w.paragraph(
+    "The Kasten Resilience Playbook (kasten-resilience-playbook.pdf) — the maturity model, day-2 operating model and reference architecture this checklist is built from. Each stage cites the sections it draws on.",
+    { size: 8, indent: 2 },
+  );
+  w.paragraph(
+    "Kasten Maturity Self-Assessment (kasten-maturity-self-assessment.xlsx) — the scoring workbook. Both ship with this tool and are linked from its Reference row.",
+    { size: 8, indent: 2 },
+  );
+
+  w.space(2);
   w.paragraph(
     "This document records verification performed against a specific cluster on the date above. Items marked N/A are decisions, not omissions — each should have a recorded reason. Items marked FAIL are known, accepted gaps at the time of signing.",
     { size: 8, colour: MUTED, style: "italic" },
@@ -368,6 +403,9 @@ export async function exportAssessmentPdf({
     w.paragraph(stage.goal, { size: 9.5 });
     w.space(1);
     w.paragraph(`Maturity: ${stage.maturityTarget}`, { size: 8.5, colour: MUTED });
+    if (stage.playbookRefs?.length) {
+      w.paragraph(`Playbook: ${stage.playbookRefs.join("  ·  ")}`, { size: 8, colour: MUTED });
+    }
     w.space(1);
     w.subHeading("Exit criteria");
     for (const c of stage.exitCriteria) {
