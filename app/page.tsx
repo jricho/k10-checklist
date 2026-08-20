@@ -81,7 +81,7 @@ export default function ChecklistPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-surface border-b border-gray-200 shadow-sm sticky top-0 z-20">
+      <header className="bg-surface border-b border-line shadow-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <Image
@@ -93,20 +93,20 @@ export default function ChecklistPage() {
               unoptimized
               priority
             />
-            <div className="hidden sm:block h-7 w-px bg-gray-300" />
-            <span className="hidden sm:block text-xs font-medium text-gray-500 tracking-wide uppercase truncate">
+            <div className="hidden sm:block h-7 w-px bg-line-strong" />
+            <span className="hidden sm:block text-xs font-medium text-ink-muted tracking-wide uppercase truncate">
               Readiness & Operating Maturity
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="hidden md:block text-[11px] text-gray-400 tabular-nums mr-1">
+            <span className="hidden md:block text-[11px] text-ink-faint tabular-nums mr-1">
               {overall.passed}/{overall.applicable} overall
             </span>
             <input ref={fileInput} type="file" accept=".json" className="hidden" onChange={handleLoadJson} />
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
-              className="text-xs font-semibold text-gray-600 hover:text-brand-700 px-2 py-2"
+              className="text-xs font-semibold text-ink-soft hover:text-brand-700 px-2 py-2"
             >
               Open
             </button>
@@ -118,7 +118,7 @@ export default function ChecklistPage() {
                   ctrl.exportJson(),
                 )
               }
-              className="text-xs font-semibold text-gray-600 hover:text-brand-700 px-2 py-2"
+              className="text-xs font-semibold text-ink-soft hover:text-brand-700 px-2 py-2"
             >
               Save
             </button>
@@ -130,7 +130,7 @@ export default function ChecklistPage() {
               value={exportScope}
               onChange={e => setExportScope(e.target.value as ExportScope)}
               title="How much of the journey the exported PDF covers"
-              className="text-xs font-medium text-gray-600 border border-gray-300 rounded-lg px-2 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="text-xs font-medium text-ink-soft border border-line-strong rounded-lg px-2 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600"
             >
               {(Object.keys(EXPORT_SCOPE_LABELS) as ExportScope[]).map(key => (
                 <option key={key} value={key}>
@@ -171,10 +171,10 @@ export default function ChecklistPage() {
           feedback reads as latency. `--reveal-index` sets the cascade. */}
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-6 reveal" style={{ "--reveal-index": 0 } as React.CSSProperties}>
-          <h1 className="font-display text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="font-display text-2xl font-bold text-ink mb-2">
             Veeam Kasten readiness, from proof of concept to operating maturity
           </h1>
-          <p className="text-gray-500 text-sm max-w-3xl leading-relaxed">
+          <p className="text-ink-muted text-sm max-w-3xl leading-relaxed">
             Four stages, each with its own gate. Work through them in order: prove recovery works, make protection
             automatic and immutable, make failure visible and recovery executable, then sustain it. Export the PDF at
             each gate for the change record, and carry the maturity signals into the self-assessment workbook.
@@ -182,7 +182,7 @@ export default function ChecklistPage() {
           {/* Both files ship in public/ so the links resolve in a self-hosted or
               air-gapped deployment rather than pointing at an intranet. */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Reference</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">Reference</span>
             <a
               href="/kasten-resilience-playbook.pdf"
               target="_blank"
@@ -212,10 +212,10 @@ export default function ChecklistPage() {
 
         {/* Engagement details */}
         <div
-          className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6 mb-6 reveal"
+          className="bg-surface rounded-card border border-line shadow-card p-5 mb-5 reveal"
           style={{ "--reveal-index": 1 } as React.CSSProperties}
         >
-          <h2 className="text-xs font-semibold text-gray-500 mb-4 uppercase tracking-wide">Assessment details</h2>
+          <h2 className="text-xs font-semibold text-ink-muted mb-4 uppercase tracking-wide">Assessment details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <Field label="Project" value={meta.project} onChange={v => setMeta("project", v)} placeholder="Customer or project name" />
             <Field label="Environment" value={meta.environment} onChange={v => setMeta("environment", v)} placeholder="e.g. Production, Staging" />
@@ -226,14 +226,14 @@ export default function ChecklistPage() {
           {/* RPO/RTO used to be a textarea here. It now lives in the tiers table
               in the architecture panel, because a textarea cannot tell you that
               a two-hour RTO and an export-only topology are incompatible. */}
-          <p className="text-[13px] text-gray-500">
+          <p className="text-[13px] text-ink-muted">
             RPO and RTO targets are recorded per workload tier in{" "}
             <a href="#architecture" className="font-medium text-brand-700 hover:underline">
               Workload tiers &amp; DR topology
             </a>{" "}
             below. Every disaster recovery item is assessed against them.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-line">
             <Field label="Sign-off — Platform" value={meta.signoffPlatform} onChange={v => setMeta("signoffPlatform", v)} placeholder="Name & date" />
             <Field label="Sign-off — Security / Compliance" value={meta.signoffSecurity} onChange={v => setMeta("signoffSecurity", v)} placeholder="Name & date" />
             <Field label="Sign-off — Workload owner" value={meta.signoffWorkloadOwner} onChange={v => setMeta("signoffWorkloadOwner", v)} placeholder="Name & date" />
@@ -285,9 +285,9 @@ export default function ChecklistPage() {
               <div className="space-y-6">
                 <DiagnosticsCard outputs={outputs} onChange={setOutput} />
 
-                <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
+                <section className="bg-surface rounded-card border border-line shadow-card p-5">
                   <div className="flex items-start justify-between gap-4 mb-1">
-                    <h2 className="text-base font-semibold text-gray-900">Cluster architecture diagram</h2>
+                    <h2 className="text-base font-semibold text-ink">Cluster architecture diagram</h2>
                     <a
                       href="https://github.com/philippemerle/KubeDiagrams"
                       target="_blank"
@@ -297,9 +297,9 @@ export default function ChecklistPage() {
                       KubeDiagrams ↗
                     </a>
                   </div>
-                  <p className="text-[13px] text-gray-500 mb-4 leading-relaxed">
+                  <p className="text-[13px] text-ink-muted mb-4 leading-relaxed">
                     Optional. Generate one with{" "}
-                    <code className="text-[12px] bg-gray-100 rounded px-1">
+                    <code className="text-[12px] bg-surface-sunken rounded px-1">
                       kubectl get all -A -o yaml | kube-diagrams -o k10-arch.png -
                     </code>{" "}
                     and attach it here; it is embedded on its own page in the export. Held in memory for this session
@@ -307,9 +307,9 @@ export default function ChecklistPage() {
                     assessment itself.
                   </p>
                   {!diagram ? (
-                    <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg px-6 py-8 cursor-pointer hover:border-brand-600 hover:bg-gray-50/60 transition-colors">
-                      <span className="text-sm font-medium text-gray-700">Click to upload diagram</span>
-                      <span className="text-xs text-gray-400 mt-1">PNG or JPEG</span>
+                    <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-line-strong rounded-lg px-6 py-8 cursor-pointer hover:border-brand-600 hover:bg-surface-sunken/60 transition-colors">
+                      <span className="text-sm font-medium text-ink-soft">Click to upload diagram</span>
+                      <span className="text-xs text-ink-faint mt-1">PNG or JPEG</span>
                       <input
                         type="file"
                         accept="image/png,image/jpeg"
@@ -319,10 +319,10 @@ export default function ChecklistPage() {
                     </label>
                   ) : (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2">
-                        <span className="text-sm text-gray-700 truncate">
+                      <div className="flex items-center justify-between bg-surface-sunken border border-line rounded-lg px-4 py-2">
+                        <span className="text-sm text-ink-soft truncate">
                           {diagram.name}{" "}
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-ink-faint">
                             ({diagram.dims.w}×{diagram.dims.h})
                           </span>
                         </span>
@@ -334,7 +334,7 @@ export default function ChecklistPage() {
                           Remove
                         </button>
                       </div>
-                      <div className="border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center p-4">
+                      <div className="border border-line rounded-lg bg-surface-sunken flex items-center justify-center p-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={diagram.dataUrl}
@@ -351,16 +351,16 @@ export default function ChecklistPage() {
         </div>
       </main>
 
-      <footer className="mt-12 border-t border-gray-200 bg-surface">
+      <footer className="mt-12 border-t border-line bg-surface">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-ink-faint">
             &copy; {new Date().getFullYear()} Veeam Software. Assessment data stays in your browser — this app has no
             backend and no cluster access.
           </span>
           <span className="flex items-center gap-4">
             {/* Temporary while the four-stage version is under review — remove
                 this link and app/legacy/ once it is signed off. */}
-            <Link href="/legacy" className="text-xs text-gray-400 hover:text-gray-600 hover:underline">
+            <Link href="/legacy" className="text-xs text-ink-faint hover:text-ink-soft hover:underline">
               Previous version
             </Link>
             <a
@@ -394,7 +394,7 @@ function Field({
   const id = `field-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`;
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="block text-sm font-medium text-ink-soft mb-1">
         {label}
       </label>
       <input
@@ -403,7 +403,7 @@ function Field({
         value={value}
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
+        className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
       />
     </div>
   );

@@ -25,11 +25,11 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
     scored.length > 0 ? scored.reduce((n, e) => n + e.evidencedLevel, 0) / scored.length : 0;
 
   return (
-    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-surface rounded-card border border-line shadow-card p-5">
       <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Maturity signals observed</h2>
+        <h2 className="text-base font-semibold text-ink">Maturity signals observed</h2>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="text-xs text-gray-400">Kasten Maturity Model · 7 dimensions</span>
+          <span className="text-xs text-ink-faint">Kasten Maturity Model · 7 dimensions</span>
           {/* Served from public/ so a self-hosted, air-gapped deployment still
               has the workbook to hand. Keep it in step with the canonical
               version — see README. */}
@@ -42,7 +42,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
           </a>
         </div>
       </div>
-      <p className="text-[13px] text-gray-500 mb-5 max-w-3xl leading-relaxed">
+      <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">
         What the verified items support, mapped onto the maturity model. This is evidence, not a score — the
         companion self-assessment workbook remains authoritative, because half of each dimension is process and
         ownership that no command can observe. Use the evidenced level as the starting point for the workbook&apos;s
@@ -50,9 +50,9 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
       </p>
 
       {scored.length > 0 && (
-        <div className="flex items-baseline gap-3 mb-5 pb-5 border-b border-gray-100">
-          <span className="text-3xl font-bold text-gray-900 tabular-nums">L{average.toFixed(1)}</span>
-          <span className="text-[13px] text-gray-500">
+        <div className="flex items-baseline gap-3 mb-5 pb-5 border-b border-line">
+          <span className="text-3xl font-bold text-ink tabular-nums">L{average.toFixed(1)}</span>
+          <span className="text-[13px] text-ink-muted">
             average across the {scored.length} dimension{scored.length === 1 ? "" : "s"} with complete evidence
           </span>
         </div>
@@ -62,7 +62,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
         {evidence.map(ev => (
           <div key={ev.dimension} className="grid md:grid-cols-[220px_1fr] gap-3 md:gap-5">
             <div>
-              <div className="text-[13px] font-semibold text-gray-800 leading-snug">
+              <div className="text-[13px] font-semibold text-ink leading-snug">
                 {DIMENSIONS[ev.dimension].name}
               </div>
               <div className="flex items-center gap-1 mt-1.5" aria-hidden="true">
@@ -74,16 +74,16 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
                       // brand green measures 2.46:1 against this track, below
                       // the 3:1 floor for a non-text indicator. brand-600 keeps
                       // the energy at 4.08:1.
-                      l <= ev.evidencedLevel ? "bg-brand-600" : "bg-gray-200"
+                      l <= ev.evidencedLevel ? "bg-brand-600" : "bg-line"
                     }`}
                   />
                 ))}
               </div>
-              <div className="text-[11px] text-gray-500 mt-1">
+              <div className="text-[11px] text-ink-muted mt-1">
                 {ev.evidencedLevel > 0
                   ? `Evidence supports L${ev.evidencedLevel} — ${LEVEL_LABELS[ev.evidencedLevel]}`
                   : "No level fully evidenced yet"}
-                <span className="text-gray-400">
+                <span className="text-ink-faint">
                   {" "}
                   ({ev.passedCount}/{ev.taggedCount} items)
                 </span>
@@ -92,12 +92,12 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
             <div className="md:pt-0.5">
               {ev.blockingNextLevel.length > 0 && ev.nextLevel ? (
                 <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint mb-1">
                     To evidence Level {ev.nextLevel}
                   </div>
                   <ul className="space-y-1">
                     {ev.blockingNextLevel.map(item => (
-                      <li key={item.id} className="flex gap-2 text-[12px] text-gray-600">
+                      <li key={item.id} className="flex gap-2 text-[12px] text-ink-soft">
                         <span className="text-amber-500 shrink-0">•</span>
                         {item.label}
                       </li>
@@ -105,7 +105,7 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
                   </ul>
                 </>
               ) : (
-                <div className="text-[12px] text-gray-500">
+                <div className="text-[12px] text-ink-muted">
                   {ev.evidencedLevel === 5
                     ? "All associated items verified — sustaining practices apply. Reassess annually."
                     : "No further checklist evidence defined for this dimension; score it on judgement in the workbook."}
@@ -116,10 +116,10 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
         ))}
       </div>
 
-      <p className="text-[12px] text-gray-400 mt-6 pt-4 border-t border-gray-100 leading-relaxed">
+      <p className="text-[12px] text-ink-faint mt-6 pt-4 border-t border-line leading-relaxed">
         Next: download the workbook above, record Current and Target Level for each dimension on its{" "}
-        <strong className="font-semibold text-gray-500">Self-Assessment</strong> sheet (the second tab), then read the{" "}
-        <strong className="font-semibold text-gray-500">Recommendations</strong> tab for the level-transition actions.
+        <strong className="font-semibold text-ink-muted">Self-Assessment</strong> sheet (the second tab), then read the{" "}
+        <strong className="font-semibold text-ink-muted">Recommendations</strong> tab for the level-transition actions.
         Reassess at least annually, or sooner after an incident, a drill, fleet growth or a new regulatory requirement.
         This panel is reproduced in the PDF export.
       </p>

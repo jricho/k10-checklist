@@ -45,16 +45,16 @@ function TierRow({
    */
   const echo = (raw: string, mins: number | null) =>
     mins !== null && raw.trim() !== formatMinutes(mins) ? (
-      <p className="text-[10px] text-gray-400 mt-1">= {formatMinutes(mins)}</p>
+      <p className="text-[10px] text-ink-faint mt-1">= {formatMinutes(mins)}</p>
     ) : null;
   const overTarget = rto !== null && measured !== null && measured > rto;
   const withinTarget = rto !== null && measured !== null && measured <= rto;
 
   const cell =
-    "w-full border border-gray-300 rounded-md px-2 py-1.5 text-[12px] text-gray-900 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent";
+    "w-full border border-line-strong rounded-md px-2 py-1.5 text-[12px] text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent";
 
   return (
-    <div className="grid grid-cols-12 gap-2 items-start py-3 border-b border-gray-100 last:border-b-0">
+    <div className="grid grid-cols-12 gap-2 items-start py-3 border-b border-line last:border-b-0">
       <div className="col-span-12 md:col-span-3">
         <label className="sr-only" htmlFor={`${tier.id}-name`}>
           Tier name
@@ -114,7 +114,7 @@ function TierRow({
             </option>
           ))}
         </select>
-        <p className="text-[10px] text-gray-400 mt-1 leading-snug">
+        <p className="text-[10px] text-ink-faint mt-1 leading-snug">
           {tier.topology === "undecided" ? info.suitability : `RTO ${info.rtoRange} · ${info.cost}`}
         </p>
       </div>
@@ -160,7 +160,7 @@ function TierRow({
             onClick={onRemove}
             title="Remove this tier"
             aria-label={`Remove ${tier.name || "tier"}`}
-            className="text-gray-300 hover:text-red-600 text-lg leading-none px-1 shrink-0"
+            className="text-line-strong hover:text-red-600 text-lg leading-none px-1 shrink-0"
           >
             ×
           </button>
@@ -190,9 +190,9 @@ export function ArchitecturePanel({
   const soft = warnings.filter(w => w.severity === "info");
 
   return (
-    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-surface rounded-card border border-line shadow-card p-5">
       <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Workload tiers &amp; DR topology</h2>
+        <h2 className="text-base font-semibold text-ink">Workload tiers &amp; DR topology</h2>
         <a
           href="/kasten-resilience-playbook.pdf"
           target="_blank"
@@ -202,13 +202,13 @@ export function ArchitecturePanel({
           Playbook §4.3, §4.7 ↗
         </a>
       </div>
-      <p className="text-[13px] text-gray-500 mb-5 max-w-3xl leading-relaxed">
+      <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">
         Requirements drive the architecture, not the other way around. Define what each tier can tolerate losing and how
         long it can be down, then choose the topology that can deliver it. Everything here prints on the cover of the
         exported PDF, and the DR items in Go-Live are assessed against it.
       </p>
 
-      <div className="hidden md:grid grid-cols-12 gap-2 pb-2 border-b border-gray-200 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+      <div className="hidden md:grid grid-cols-12 gap-2 pb-2 border-b border-line text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
         <div className="col-span-3">Workload tier</div>
         <div className="col-span-1">RPO</div>
         <div className="col-span-1">RTO</div>
@@ -219,7 +219,7 @@ export function ArchitecturePanel({
 
       <div>
         {tiers.length === 0 ? (
-          <p className="text-[13px] text-gray-400 py-4">No tiers defined.</p>
+          <p className="text-[13px] text-ink-faint py-4">No tiers defined.</p>
         ) : (
           tiers.map(tier => (
             <TierRow
@@ -253,18 +253,18 @@ export function ArchitecturePanel({
             </div>
           ))}
           {soft.map((w, i) => (
-            <p key={`i-${i}`} className="text-[12px] text-gray-400 px-1">
+            <p key={`i-${i}`} className="text-[12px] text-ink-faint px-1">
               {w.text}
             </p>
           ))}
         </div>
       )}
 
-      <div className="mt-5 pt-5 border-t border-gray-100">
-        <label htmlFor="tier-notes" className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="mt-5 pt-5 border-t border-line">
+        <label htmlFor="tier-notes" className="block text-sm font-medium text-ink-soft mb-1">
           Additional RPO / RTO context
         </label>
-        <p className="text-[12px] text-gray-500 mb-1.5">
+        <p className="text-[12px] text-ink-muted mb-1.5">
           Who set these targets, what constrains them, and anything deliberately out of scope.
         </p>
         <textarea
@@ -272,12 +272,12 @@ export function ArchitecturePanel({
           value={notes}
           onChange={e => onNotesChange(e.target.value)}
           placeholder="e.g. Production RTO agreed with the trading desk, Feb 2026. Edge sites have a 4h connectivity window overnight, which caps achievable RPO."
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 min-h-[72px] resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
+          className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm text-ink min-h-[72px] resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
         />
       </div>
 
       <details className="mt-5">
-        <summary className="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700">
+        <summary className="text-xs font-semibold text-ink-muted cursor-pointer hover:text-ink-soft">
           Topology reference (Playbook §4.7)
         </summary>
         <div className="mt-3 space-y-3">
@@ -285,14 +285,14 @@ export function ArchitecturePanel({
             const t = TOPOLOGIES[key];
             return (
               <div key={key} className="text-[12px] leading-relaxed">
-                <span className="font-semibold text-gray-800">{t.label}</span>
-                <span className="text-gray-400"> — RTO {t.rtoRange} · {t.cost}</span>
-                <p className="text-gray-500">{t.summary}</p>
-                <p className="text-gray-400 italic">{t.suitability}</p>
+                <span className="font-semibold text-ink">{t.label}</span>
+                <span className="text-ink-faint"> — RTO {t.rtoRange} · {t.cost}</span>
+                <p className="text-ink-muted">{t.summary}</p>
+                <p className="text-ink-faint italic">{t.suitability}</p>
               </div>
             );
           })}
-          <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+          <p className="text-[11px] text-ink-faint pt-2 border-t border-line">
             This reference architecture uses an independent-cluster topology throughout: each cluster is self-contained
             and recovery means restoring onto a separately provisioned cluster. Stretched clusters are explicitly out of
             scope.

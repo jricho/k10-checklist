@@ -118,9 +118,12 @@
   --color-amber-50: #fdf5e6;
   --color-amber-100: #f9e6c2;
   --color-amber-200: #f0cd8c;
+  --color-amber-300: #e3b25e;
   --color-amber-500: #b8791a; /* 3.63:1 — UI fills only */
   --color-amber-600: #92610a; /* 5.33:1 — text */
   --color-amber-700: #7a5008; /* 6.51:1 on amber-50 */
+  --color-amber-800: #653f05;
+  --color-amber-900: #4d3004;
 
   /* --- Surfaces ----------------------------------------------------------
      Semantic, so dark mode is a token flip rather than a component rewrite.
@@ -231,10 +234,18 @@
     --color-ink-muted: #a9b6c4;
     --color-ink-faint: #8b99a9;
 
-    /* Brand steps lighten so text and links stay legible on dark surfaces. */
+    /* Brand steps lighten so text and links stay legible on dark surfaces.
+       The tint and the deepest step have to flip together with them: leaving
+       brand-50 light while brand-800 lightens gives pale-green-on-pale-green at
+       1.55:1 in every brand chip, and the same trap catches brand-900 on the
+       active stage card. Any tint/ink pair must be overridden as a pair. */
+    --color-brand-50: #0d2418; /* tint — fg #b7f0d2 on this is 12.79:1 */
+    --color-brand-100: #133423;
+    --color-brand-200: #2b7d51; /* border on the tint, 3.24:1 */
     --color-brand-600: #16c96c;
     --color-brand-700: #2fd07a;
-    --color-brand-800: #6ade9f;
+    --color-brand-800: #8ce7ba; /* 11.11:1 on the tint */
+    --color-brand-900: #b7f0d2; /* 12.79:1 on the tint */
 
     --color-green-50: #0d2418;
     --color-green-800: #6ade9f;
@@ -244,6 +255,8 @@
     --color-amber-50: #251a08;
     --color-amber-600: #e0a94a;
     --color-amber-700: #f0c274;
+    --color-amber-800: #f5d49a;
+    --color-amber-900: #fae8c9;
 
     --page-bg: #0b131b;
     --wash:

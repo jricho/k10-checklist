@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CommandBlock } from "../ui/command-block";
 import { StatusToggle } from "../ui/status-toggle";
+import { Chip, Panel, PanelHeader, PanelIntro } from "../ui/panel";
 import {
   DIMENSIONS,
   ocCommandFor,
@@ -14,19 +15,25 @@ import {
 } from "../../lib/checklist-data";
 
 /**
- * One checklist item.
+ * Status is carried on the left edge of the row rather than as a background
+ * tint across the whole row.
  *
- * Three additions over the original row, each earning its space:
+ * With up to eleven items per section, full-row tints turned the page into
+ * bands of pale green and pink — pretty at three rows, candy at ninety, and
+ * loud enough to compete with the gate badge that has to dominate. A 2px edge
+ * scans just as fast down a column, keeps the text on a plain surface where it
+ * is most legible, and leaves the saturated colour budget for the gate.
  *
- *  - `why`: the risk the item retires, in language a customer can repeat to their
- *    own stakeholders. A checklist that only says what to do gets argued with; one
- *    that says what happens if you skip it gets done.
- *  - `evidence`: what to look for in the output. Running the command was never the
- *    hard part — knowing whether the answer is acceptable is.
- *  - maturity tags: the dimension and level this item feeds, so the link to the
- *    Resilience Playbook is visible at the point of work rather than only in the
- *    export.
+ * Colour is never the only signal: the toggle itself always shows which state
+ * is selected in words.
  */
+const STATUS_EDGE: Record<ItemStatus, string> = {
+  pass: "border-l-brand-600 bg-brand-50/30",
+  fail: "border-l-red-500 bg-red-50/30",
+  na: "border-l-line-strong bg-surface-sunken/60",
+  pending: "border-l-transparent",
+};
+
 function ItemRow({
   item,
   status,
@@ -46,22 +53,16 @@ function ItemRow({
 
   return (
     <li
-      className={`px-5 py-4 transition-colors ${
-        status === "pass"
-          ? "bg-green-50/40"
-          : status === "fail"
-            ? "bg-red-50/40"
-            : status === "na"
-              ? "bg-gray-50"
-              : ""
+      className={`border-l-2 pl-4 pr-5 py-3.5 transition-colors ${STATUS_EDGE[status]} ${
+        status === "pending" ? "hover:bg-surface-sunken/70" : ""
       }`}
     >
       <div className="flex flex-col lg:flex-row lg:items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 flex-wrap">
+          <div className="flex items-baseline gap-2 flex-wrap">
             <span
-              className={`text-sm font-semibold ${
-                status === "na" ? "text-gray-400" : "text-gray-900"
+              className={`text-sm font-semibold leading-snug ${
+                status === "na" ? "text-ink-faint" : "text-ink"
               }`}
             >
               {item.label}
@@ -69,7 +70,7 @@ function ItemRow({
             {item.blocking && (
               <span
                 title="Blocking: this stage cannot be signed off until this item passes or is ruled N/A"
-                className="text-[9px] font-bold uppercase tracking-wider bg-red-100 text-red-700 rounded px-1.5 py-0.5 mt-0.5"
+                className="text-2xs font-bold uppercase tracking-wider text-red-700"
               >
                 Blocking
               </span>
@@ -77,28 +78,29 @@ function ItemRow({
             {item.conditional && (
               <span
                 title="Frequently N/A — mark N/A with a reason if it does not apply here"
-                className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 rounded px-1.5 py-0.5 mt-0.5"
+                className="text-2xs font-medium uppercase tracking-wider text-ink-faint"
               >
                 May be N/A
               </span>
             )}
           </div>
 
-          <p className="text-[13px] text-gray-600 mt-1 leading-relaxed">{item.why}</p>
+          <p className="text-sm text-ink-muted mt-1 leading-relaxed max-w-3xl">{item.why}</p>
 
-          <p className="text-[12px] text-gray-500 mt-1.5">
-            <span className="font-semibold text-gray-600">Evidence of pass: </span>
+          <p className="text-xs text-ink-faint mt-1.5 max-w-3xl">
+            <span className="font-semibold text-ink-muted">Evidence of pass: </span>
             {item.evidence}
           </p>
 
-          <div className="flex items-center gap-2 flex-wrap mt-2">
+          <div className="flex items-center gap-x-3 gap-y-1.5 flex-wrap mt-2">
             {item.signals.map(([dim, level]) => (
               <span
                 key={`${dim}-${level}`}
                 title={`Evidence for Level ${level} of ${DIMENSIONS[dim].name} in the Kasten Maturity Model`}
-                className="text-[10px] font-medium text-brand-800 bg-brand-500/10 rounded-full px-2 py-0.5"
+                className="text-2xs font-medium text-ink-muted"
               >
-                {DIMENSIONS[dim].short} · L{level}
+                {DIMENSIONS[dim].short}
+                <span className="text-brand-700 font-semibold"> L{level}</span>
               </span>
             ))}
             {item.docs?.map(d => (
@@ -107,7 +109,7 @@ function ItemRow({
                 href={d.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] font-medium text-brand-700 hover:underline"
+                className="text-2xs font-medium text-brand-700 hover:underline"
               >
                 {d.label} ↗
               </a>
@@ -116,20 +118,20 @@ function ItemRow({
               type="button"
               onClick={() => setOpen(v => !v)}
               aria-expanded={open}
-              className="text-[10px] font-semibold text-gray-500 hover:text-brand-700"
+              className="text-2xs font-semibold text-ink-faint hover:text-brand-700 transition-colors"
             >
               {open ? "Hide" : item.cmd ? "Verify & note" : "Add note"}
             </button>
           </div>
         </div>
 
-        <div className="shrink-0 flex items-start gap-2">
+        <div className="shrink-0">
           <StatusToggle status={status} onChange={onStatus} itemLabel={item.label} />
         </div>
       </div>
 
       {(open || needsNote) && (
-        <div className="mt-3 pl-0 lg:pl-1 space-y-2">
+        <div className="mt-3 space-y-2">
           {item.cmd && (
             <div className="space-y-2">
               <CommandBlock command={item.cmd} label="kubectl" />
@@ -137,10 +139,7 @@ function ItemRow({
             </div>
           )}
           <div>
-            <label
-              htmlFor={`note-${item.id}`}
-              className="block text-[11px] font-medium text-gray-500 mb-1"
-            >
+            <label htmlFor={`note-${item.id}`} className="block text-2xs font-medium text-ink-faint mb-1">
               {needsNote
                 ? status === "na"
                   ? "Why does this not apply? (printed in the export)"
@@ -152,8 +151,8 @@ function ItemRow({
               value={note}
               onChange={e => onNote(e.target.value)}
               rows={2}
-              className={`w-full border rounded-lg px-3 py-2 text-[12px] text-gray-800 resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent ${
-                needsNote && !note.trim() ? "border-amber-400 bg-amber-50/40" : "border-gray-300 bg-surface"
+              className={`w-full rounded-lg border px-3 py-2 text-xs text-ink bg-surface resize-y transition-colors focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent ${
+                needsNote && !note.trim() ? "border-amber-500 bg-amber-50/50" : "border-line"
               }`}
               placeholder={
                 needsNote
@@ -193,45 +192,25 @@ export function SectionCard({
   ).length;
 
   return (
-    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <h3>
-        <button
-          type="button"
-          onClick={() => setOpen(v => !v)}
-          aria-expanded={open}
-          className="w-full bg-brand-700 hover:bg-brand-800 transition-colors px-5 py-3 flex items-center justify-between gap-3 text-left"
-        >
-          <span className="text-sm font-bold text-white uppercase tracking-wide">{section.title}</span>
-          <span className="flex items-center gap-2 shrink-0">
-            {blockersOpen > 0 && (
-              <span className="text-[10px] font-bold bg-red-500 text-white rounded-full px-2 py-0.5">
-                {blockersOpen} blocking
-              </span>
-            )}
-            <span className="text-[11px] font-semibold text-white bg-white/20 rounded-full px-2 py-0.5 tabular-nums">
+    <Panel>
+      <PanelHeader
+        accent
+        title={section.title}
+        onClick={() => setOpen(v => !v)}
+        expanded={open}
+        meta={
+          <>
+            {blockersOpen > 0 && <Chip tone="danger">{blockersOpen} blocking</Chip>}
+            <Chip tone={done === section.items.length ? "brand" : "neutral"}>
               {done}/{section.items.length}
-            </span>
-            <svg
-              className={`h-4 w-4 text-white transition-transform ${open ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </span>
-        </button>
-      </h3>
+            </Chip>
+          </>
+        }
+      />
       {open && (
         <>
-          {section.intro && (
-            <p className="px-5 py-3 text-[13px] text-gray-500 bg-gray-50/70 border-b border-gray-100 leading-relaxed">
-              {section.intro}
-            </p>
-          )}
-          <ul className="divide-y divide-gray-100">
+          {section.intro && <PanelIntro>{section.intro}</PanelIntro>}
+          <ul className="divide-y divide-line">
             {section.items.map(item => (
               <ItemRow
                 key={item.id}
@@ -245,6 +224,6 @@ export function SectionCard({
           </ul>
         </>
       )}
-    </section>
+    </Panel>
   );
 }

@@ -53,7 +53,7 @@ export function CommandBlock({
       ? "bg-red-100 text-red-700"
       : tone === "tool"
         ? "bg-purple-100 text-purple-700"
-        : "bg-gray-200 text-gray-700";
+        : "bg-surface-sunken text-ink-muted border border-line";
 
   return (
     <div className="group relative">
@@ -66,7 +66,7 @@ export function CommandBlock({
       )}
       <div className="relative">
         <pre
-          className={`bg-gray-950 text-emerald-200 rounded-lg pl-3 pr-24 py-2 text-[11px] font-mono leading-relaxed select-all ${
+          className={`bg-slate-950 text-brand-200 rounded-lg pl-3 pr-24 py-2 text-[11px] font-mono leading-relaxed select-all ${
             wrap ? "whitespace-pre-wrap break-words" : "overflow-x-auto whitespace-pre"
           }`}
         >

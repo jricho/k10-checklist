@@ -1,6 +1,7 @@
 "use client";
 
 import { STAGES, type StageId, type StatusMap, progressForStage } from "../../lib/checklist-data";
+import { Panel } from "../ui/panel";
 
 // The journey, as navigation.
 //
@@ -13,14 +14,40 @@ import { STAGES, type StageId, type StatusMap, progressForStage } from "../../li
 // Stages are always browsable — a customer will want to read ahead to see what is
 // coming, and an established customer may start at Day-2. What is gated is the
 // claim of readiness, not access to the questions.
+//
+// Visual note: the active stage is marked with a brand rule and a tinted surface
+// rather than a solid green fill. A saturated block here competed with the gate
+// badge below it, and the gate is the more important signal — a filled card tells
+// you where you are, which you already know, while the gate tells you whether you
+// can sign, which is the question.
 
-// `bg-white` here is literal white, not the surface token: these sit on the
-// brand-green active card, so they must stay light in dark mode exactly as
-// `text-white` does.
-const GATE_STYLES = {
-  clear: { dot: "bg-white", text: "Gate clear" },
-  outstanding: { dot: "bg-amber-300", text: "Blockers open" },
-  blocked: { dot: "bg-red-400", text: "Upstream blocked" },
+/**
+ * Gate presentation.
+ *
+ * `amber-600` rather than `amber-500` for the fill: at #b8791a the amber
+ * measures 3.63:1 against white text, which fails AA. #92610a is 5.33:1. The
+ * most important status on the page is not the place to lose a contrast
+ * argument.
+ */
+const GATE = {
+  clear: {
+    badge: "bg-brand-700 text-white",
+    dot: "bg-brand-500",
+    short: "Gate clear",
+    label: () => "GATE CLEAR",
+  },
+  outstanding: {
+    badge: "bg-amber-600 text-white",
+    dot: "bg-amber-500",
+    short: "Blockers open",
+    label: (n: number) => `${n} BLOCKING OPEN`,
+  },
+  blocked: {
+    badge: "bg-red-600 text-white",
+    dot: "bg-red-500",
+    short: "Upstream blocked",
+    label: () => "UPSTREAM BLOCKED",
+  },
 } as const;
 
 export function StageNav({
@@ -33,65 +60,62 @@ export function StageNav({
   onSelect: (stage: StageId) => void;
 }) {
   return (
-    <nav aria-label="Journey stages" className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <nav aria-label="Journey stages" className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
       {STAGES.map((stage, i) => {
         const p = progressForStage(stage.id, statuses);
         const isActive = stage.id === active;
-        const gate = GATE_STYLES[p.gate];
+        const gate = GATE[p.gate];
         return (
           <button
             key={stage.id}
             type="button"
             onClick={() => onSelect(stage.id)}
             aria-current={isActive ? "step" : undefined}
-            className={`text-left rounded-xl border p-4 transition-all ${
+            className={`group relative text-left rounded-card border overflow-hidden transition-all duration-150 ${
               isActive
-                ? "bg-brand-700 border-brand-600 text-white shadow-md"
-                : "bg-surface border-gray-200 hover:border-brand-600/50 hover:shadow-sm"
+                ? "border-brand-600 bg-brand-50 shadow-card"
+                : "border-line bg-surface hover:border-line-strong hover:shadow-card"
             }`}
           >
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wider ${
-                  isActive ? "text-white/70" : "text-gray-400"
-                }`}
-              >
-                Stage {i + 1}
+            {/* Position marker: a filled rule, not a filled card. */}
+            <span
+              aria-hidden="true"
+              className={`absolute inset-x-0 top-0 h-[3px] ${
+                isActive ? "bg-brand-600" : "bg-transparent group-hover:bg-line-strong"
+              }`}
+            />
+            <span className="block p-4 pt-[15px]">
+              <span className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="font-mono text-2xs font-medium uppercase tracking-[0.14em] text-ink-faint">
+                  Stage {i + 1}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-2xs font-semibold text-ink-muted">
+                  <span className={`w-1.5 h-1.5 rounded-full ${gate.dot}`} />
+                  {gate.short}
+                </span>
               </span>
               <span
-                className={`inline-flex items-center gap-1 text-[10px] font-semibold ${
-                  isActive ? "text-white/90" : "text-gray-500"
+                className={`block font-display text-sm font-semibold mb-1 ${
+                  isActive ? "text-brand-900" : "text-ink"
                 }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? gate.dot : ""} ${
-                  !isActive
-                    ? p.gate === "clear"
-                      ? "bg-brand-700"
-                      : p.gate === "outstanding"
-                        ? "bg-amber-500"
-                        : "bg-red-500"
-                    : ""
-                }`} />
-                {gate.text}
+                {stage.name}
               </span>
-            </div>
-            <div className={`text-sm font-bold mb-1 ${isActive ? "text-white" : "text-gray-900"}`}>
-              {stage.name}
-            </div>
-            <div className={`text-[11px] leading-snug mb-2 ${isActive ? "text-white/80" : "text-gray-500"}`}>
-              {stage.strapline}
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`h-1.5 flex-1 rounded-full overflow-hidden ${isActive ? "bg-white/25" : "bg-gray-100"}`}>
-                <div
-                  className={`h-full rounded-full ${isActive ? "bg-white" : "bg-brand-600"}`}
-                  style={{ width: `${p.percent}%` }}
-                />
-              </div>
-              <span className={`text-[10px] font-semibold tabular-nums ${isActive ? "text-white" : "text-gray-600"}`}>
-                {p.passed}/{p.applicable}
+              <span className="block text-2xs leading-snug text-ink-muted mb-2.5">
+                {stage.strapline}
               </span>
-            </div>
+              <span className="flex items-center gap-2">
+                <span className="h-1 flex-1 rounded-full overflow-hidden bg-line">
+                  <span
+                    className="block h-full rounded-full bg-brand-600 transition-[width] duration-300"
+                    style={{ width: `${p.percent}%` }}
+                  />
+                </span>
+                <span className="text-2xs font-semibold tabular-nums text-ink-muted">
+                  {p.passed}/{p.applicable}
+                </span>
+              </span>
+            </span>
           </button>
         );
       })}
@@ -107,28 +131,32 @@ export function StageNav({
  * done is not a random sample — it is the hard items, and "restore proven from an
  * exported restore point" is one of them. Blocking items are named individually
  * so the remaining work is a list, not a number.
+ *
+ * The badge is deliberately the largest, loudest object on the page. Everything
+ * else on screen is a means of changing it.
  */
 export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses: StatusMap }) {
   const stage = STAGES.find(s => s.id === stageId)!;
   const p = progressForStage(stageId, statuses);
+  const gate = GATE[p.gate];
 
   return (
-    <div className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-        <div className="flex-1">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+    <Panel className="mb-5">
+      <div className="px-5 py-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+        <div className="flex-1 min-w-0">
+          <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-1.5">
             {stage.roadmapPhase}
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{stage.name}</h2>
-          <p className="text-sm text-gray-600 max-w-3xl">{stage.goal}</p>
+          <h2 className="font-display text-xl font-semibold text-ink mb-2">{stage.name}</h2>
+          <p className="text-sm text-ink-muted max-w-3xl leading-relaxed">{stage.goal}</p>
           {stage.playbookRefs && stage.playbookRefs.length > 0 && (
-            <p className="text-[11px] text-gray-400 mt-2">
+            <p className="text-2xs text-ink-faint mt-2.5 leading-relaxed">
               Drawn from{" "}
               <a
                 href="/kasten-resilience-playbook.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-brand-700 hover:underline"
+                className="font-semibold text-brand-700 hover:underline"
               >
                 The Kasten Resilience Playbook
               </a>{" "}
@@ -136,60 +164,74 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
             </p>
           )}
         </div>
-        <div className="shrink-0 text-right">
+
+        <div className="shrink-0 lg:text-right">
           <div
-            className={`inline-block px-4 py-2 rounded-lg text-sm font-bold ${
-              p.gate === "clear"
-                ? "bg-brand-700 text-white"
-                : p.gate === "outstanding"
-                  ? "bg-amber-500 text-white"
-                  : "bg-red-600 text-white"
-            }`}
+            className={`inline-block rounded-lg px-4 py-2.5 font-display text-lg font-bold tracking-wide ${gate.badge}`}
           >
-            {p.gate === "clear"
-              ? "GATE CLEAR"
-              : p.gate === "outstanding"
-                ? `${p.blockersOutstanding.length} BLOCKING OPEN`
-                : "UPSTREAM BLOCKED"}
+            {gate.label(p.blockersOutstanding.length)}
           </div>
-          <div className="text-[11px] text-gray-500 mt-2">
-            {p.passed} verified · {p.failed} failed · {p.pending} pending · {p.na} N/A
-          </div>
-          <div className="text-[11px] text-gray-400">{stage.maturityTarget}</div>
+          <dl className="mt-3 flex lg:justify-end gap-x-4 gap-y-1 flex-wrap text-2xs">
+            <div className="flex items-center gap-1">
+              <dt className="text-ink-faint">Verified</dt>
+              <dd className="font-semibold tabular-nums text-ink">{p.passed}</dd>
+            </div>
+            <div className="flex items-center gap-1">
+              <dt className="text-ink-faint">Failed</dt>
+              <dd className={`font-semibold tabular-nums ${p.failed ? "text-red-700" : "text-ink"}`}>
+                {p.failed}
+              </dd>
+            </div>
+            <div className="flex items-center gap-1">
+              <dt className="text-ink-faint">Pending</dt>
+              <dd className="font-semibold tabular-nums text-ink">{p.pending}</dd>
+            </div>
+            <div className="flex items-center gap-1">
+              <dt className="text-ink-faint">N/A</dt>
+              <dd className="font-semibold tabular-nums text-ink">{p.na}</dd>
+            </div>
+          </dl>
+          <p className="text-2xs text-ink-faint mt-1.5">{stage.maturityTarget}</p>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-5 pt-4 border-t border-gray-100">
+      <div className="grid md:grid-cols-2 gap-x-8 gap-y-5 px-5 py-4 border-t border-line bg-surface-sunken">
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Exit criteria</h3>
+          <h3 className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-2">
+            Exit criteria
+          </h3>
           <ul className="space-y-1.5">
             {stage.exitCriteria.map(c => (
-              <li key={c} className="flex gap-2 text-[13px] text-gray-600">
-                <span className="text-brand-700 mt-0.5 shrink-0">›</span>
+              <li key={c} className="flex gap-2 text-xs text-ink-muted leading-relaxed">
+                <span aria-hidden="true" className="text-brand-600 font-bold shrink-0">
+                  ›
+                </span>
                 {c}
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+          <h3 className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-2">
             {p.gate === "clear" ? "Blocking items" : "Outstanding blocking items"}
           </h3>
           {p.upstreamBlockers.length > 0 && (
-            <p className="text-[12px] text-red-600 mb-2 font-medium">
+            <p className="text-xs text-red-700 mb-2 font-medium leading-relaxed">
               {p.upstreamBlockers.length} blocking item{p.upstreamBlockers.length === 1 ? "" : "s"} outstanding in an
               earlier stage — clearing this stage does not make the environment ready.
             </p>
           )}
           {p.blockersOutstanding.length === 0 ? (
-            <p className="text-[13px] text-gray-500">
+            <p className="text-xs text-ink-muted">
               All blocking items in this stage are verified or ruled N/A.
             </p>
           ) : (
             <ul className="space-y-1.5">
               {p.blockersOutstanding.map(item => (
-                <li key={item.id} className="flex gap-2 text-[13px] text-gray-700">
-                  <span className="text-red-500 mt-0.5 shrink-0">•</span>
+                <li key={item.id} className="flex gap-2 text-xs text-ink-muted leading-relaxed">
+                  <span aria-hidden="true" className="text-red-500 shrink-0">
+                    •
+                  </span>
                   {item.label}
                 </li>
               ))}
@@ -197,6 +239,6 @@ export function StageHeader({ stageId, statuses }: { stageId: StageId; statuses:
           )}
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }

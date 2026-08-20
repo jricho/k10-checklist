@@ -13,6 +13,12 @@ import type { ItemStatus } from "../../lib/checklist-types";
 // Separating N/A from pending also makes FAIL usable. An explicitly failed item
 // is far more valuable in an evidence pack than a blank one: it records a known,
 // accepted gap at the point of sign-off rather than an unanswered question.
+//
+// Visual treatment: a segmented control rather than three separate buttons. It
+// reads as one decision with three answers, which is what it is, and it occupies
+// a fixed width so 112 rows of them form a clean column rather than a ragged
+// edge. Inactive segments are near-invisible so a page of unanswered items looks
+// calm; the selected segment is the only saturated thing in the row.
 
 const OPTIONS: { value: ItemStatus; label: string; title: string }[] = [
   { value: "pass", label: "Pass", title: "Verified in this environment" },
@@ -20,10 +26,10 @@ const OPTIONS: { value: ItemStatus; label: string; title: string }[] = [
   { value: "na", label: "N/A", title: "Does not apply here — record why in the note" },
 ];
 
-const STYLES: Record<ItemStatus, string> = {
-  pass: "bg-brand-700 text-white border-brand-600",
-  fail: "bg-red-600 text-white border-red-600",
-  na: "bg-gray-400 text-white border-gray-400",
+const ACTIVE: Record<ItemStatus, string> = {
+  pass: "bg-brand-700 text-white border-brand-700",
+  fail: "bg-red-500 text-white border-red-500",
+  na: "bg-ink-faint text-white border-ink-faint",
   pending: "",
 };
 
@@ -40,7 +46,7 @@ export function StatusToggle({
     <div
       role="radiogroup"
       aria-label={`Status for: ${itemLabel}`}
-      className="inline-flex rounded-md border border-gray-300 overflow-hidden shrink-0"
+      className="inline-flex rounded-lg border border-line overflow-hidden shrink-0 bg-surface"
     >
       {OPTIONS.map(opt => {
         const active = status === opt.value;
@@ -54,8 +60,10 @@ export function StatusToggle({
             // Clicking the active option clears it back to pending, so a
             // mis-click is recoverable without a separate reset control.
             onClick={() => onChange(active ? "pending" : opt.value)}
-            className={`px-2.5 py-1 text-[11px] font-semibold transition-colors border-r last:border-r-0 border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-600 ${
-              active ? STYLES[opt.value] : "bg-surface text-gray-500 hover:bg-gray-50"
+            className={`w-12 py-1.5 text-2xs font-semibold border-r last:border-r-0 transition-colors ${
+              active
+                ? ACTIVE[opt.value]
+                : "border-line text-ink-faint hover:bg-surface-sunken hover:text-ink-muted"
             }`}
           >
             {opt.label}
@@ -70,7 +78,9 @@ export function StatusPill({ status }: { status: ItemStatus }) {
   if (status === "pending") return null;
   const text = status === "pass" ? "Pass" : status === "fail" ? "Fail" : "N/A";
   return (
-    <span className={`text-[10px] font-bold uppercase tracking-wide rounded px-1.5 py-0.5 ${STYLES[status]}`}>
+    <span
+      className={`text-2xs font-bold uppercase tracking-wider rounded px-1.5 py-0.5 border ${ACTIVE[status]}`}
+    >
       {text}
     </span>
   );

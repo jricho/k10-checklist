@@ -92,9 +92,9 @@ export function DiagnosticsCard({
   }, []);
 
   return (
-    <section className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-surface rounded-card border border-line shadow-card p-5">
       <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Diagnostic captures</h2>
+        <h2 className="text-base font-semibold text-ink">Diagnostic captures</h2>
         {latestVersion && (
           <span
             title="Latest Veeam Kasten release, from charts.kasten.io"
@@ -105,27 +105,27 @@ export function DiagnosticsCard({
           </span>
         )}
       </div>
-      <p className="text-[13px] text-gray-500 mb-5 max-w-3xl leading-relaxed">
+      <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">
         Run these against the target cluster, then paste or load the output. Captures are appended to the exported PDF
         so the evidence pack is self-contained. Everything stays in your browser — this app has no backend and no
-        cluster access. Requires <code className="text-[12px] bg-gray-100 rounded px-1">kubectl</code> or{" "}
-        <code className="text-[12px] bg-gray-100 rounded px-1">oc</code>,{" "}
-        <code className="text-[12px] bg-gray-100 rounded px-1">jq</code> and{" "}
-        <code className="text-[12px] bg-gray-100 rounded px-1">helm</code> on your workstation.
+        cluster access. Requires <code className="text-[12px] bg-surface-sunken rounded px-1">kubectl</code> or{" "}
+        <code className="text-[12px] bg-surface-sunken rounded px-1">oc</code>,{" "}
+        <code className="text-[12px] bg-surface-sunken rounded px-1">jq</code> and{" "}
+        <code className="text-[12px] bg-surface-sunken rounded px-1">helm</code> on your workstation.
       </p>
 
       <div className="space-y-6">
         {CAPTURES.map((capture, i) => {
           const value = outputs[capture.key] ?? "";
           return (
-            <div key={capture.key} className={i > 0 ? "pt-5 border-t border-gray-100" : ""}>
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">{capture.title}</h3>
-              <p className="text-[12px] text-gray-500 mb-2 leading-relaxed">{capture.blurb}</p>
+            <div key={capture.key} className={i > 0 ? "pt-5 border-t border-line" : ""}>
+              <h3 className="text-xs font-semibold text-ink-soft uppercase tracking-wide mb-1">{capture.title}</h3>
+              <p className="text-[12px] text-ink-muted mb-2 leading-relaxed">{capture.blurb}</p>
               <CommandBlock command={capture.command} tone={capture.tone} />
               <div className="flex items-center justify-between mt-2 mb-1">
-                <span className="text-[11px] text-gray-500">
+                <span className="text-[11px] text-ink-muted">
                   Tip: append{" "}
-                  <code className="bg-gray-100 rounded px-1">| tee {capture.key}.txt</code> and load the file.
+                  <code className="bg-surface-sunken rounded px-1">| tee {capture.key}.txt</code> and load the file.
                 </span>
                 <div className="flex items-center gap-3">
                   <label className="text-[11px] font-medium text-brand-700 hover:underline cursor-pointer">
@@ -164,10 +164,10 @@ export function DiagnosticsCard({
                 onChange={e => onChange(capture.key, e.target.value)}
                 spellCheck={false}
                 placeholder="Paste the output here"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[11px] font-mono text-gray-800 leading-snug min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
+                className="w-full border border-line-strong rounded-lg px-3 py-2 text-[11px] font-mono text-ink leading-snug min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
               />
               {value && (
-                <div className="text-[10px] text-gray-400 mt-1">
+                <div className="text-[10px] text-ink-faint mt-1">
                   {value.length.toLocaleString()} characters · {value.split("\n").length.toLocaleString()} lines
                   {value.split("\n").length > 400 && (
                     <span className="text-amber-600">
