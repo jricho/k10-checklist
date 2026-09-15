@@ -152,6 +152,16 @@ export interface Stage {
   id: StageId;
   /** Short name for the tab. */
   name: string;
+  /**
+   * The stage as a job the customer is trying to do, verb first.
+   *
+   * Distinct from `name`, which identifies the stage, and from `strapline`,
+   * which describes the state it leaves the estate in. The landing page leads
+   * with this because a customer arriving at the tool is choosing what to do
+   * next, not which phase of a roadmap they are nominally in — "Prove recovery
+   * works" is a decision someone can make; "Pre-Production" is not.
+   */
+  jobTitle: string;
   /** One line under the tab. */
   strapline: string;
   /** Corresponding phase of the 100-day roadmap, for traceability. */

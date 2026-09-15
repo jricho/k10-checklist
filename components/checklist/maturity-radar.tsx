@@ -45,14 +45,33 @@ const WIDTH = 400;
 const HEIGHT = 240;
 const RADIUS = 92;
 const LABEL_GAP = 14;
+// y=124, not the box's vertical centre: the single top label needs less
+// clearance than the two bottom ones, which sit at 64 and 116 degrees and carry
+// a baseline shift downward. Hoisted to a constant because the compact viewBox
+// is derived from it.
+const CENTRE = { x: 205, y: 124 };
 
-export function MaturityRadar({ inputs }: { inputs: RadarInput[] }) {
+/**
+ * `compact` renders the same geometry as a sparkline: rings, spokes and plot,
+ * with the ring numerals, axis labels and caption dropped and the viewBox
+ * cropped to the plot itself.
+ *
+ * It is a separate mode rather than a smaller instance of the full chart because
+ * shrinking the labelled version to tile size makes the 10.5px axis labels
+ * illegible — and an unreadable label is worse than no label, since it still
+ * costs the space and still invites squinting. In compact form the shape carries
+ * the meaning and the numbers sit beside the chart in real text.
+ */
+export function MaturityRadar({
+  inputs,
+  compact = false,
+}: {
+  inputs: RadarInput[];
+  compact?: boolean;
+}) {
   const geometry = radarGeometry(inputs, {
     radius: RADIUS,
-    // y=124, not the box's vertical centre: the single top label needs less
-    // clearance than the two bottom ones, which sit at 64 and 116 degrees and
-    // carry a baseline shift downward.
-    centre: { x: 205, y: 124 },
+    centre: CENTRE,
     labelGap: LABEL_GAP,
   });
 
@@ -61,8 +80,12 @@ export function MaturityRadar({ inputs }: { inputs: RadarInput[] }) {
   return (
     <figure className="m-0">
       <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="w-full max-w-[400px] mx-auto"
+        viewBox={
+          compact
+            ? `${CENTRE.x - RADIUS - 6} ${CENTRE.y - RADIUS - 6} ${RADIUS * 2 + 12} ${RADIUS * 2 + 12}`
+            : `0 0 ${WIDTH} ${HEIGHT}`
+        }
+        className={compact ? "w-full" : "w-full max-w-[400px] mx-auto"}
         role="img"
         aria-label={`Maturity evidence radar. ${description}`}
       >
@@ -124,7 +147,7 @@ export function MaturityRadar({ inputs }: { inputs: RadarInput[] }) {
 
         {/* Ring numerals, on the upward axis only. Repeating them on all seven
             spokes turns the centre of the chart into noise. */}
-        {geometry.rings.map(ring => (
+        {!compact && geometry.rings.map(ring => (
           <text
             key={`n${ring.level}`}
             x={geometry.centre.x + 4}
@@ -138,7 +161,7 @@ export function MaturityRadar({ inputs }: { inputs: RadarInput[] }) {
 
         {/* Axis labels: name, then the level as a numeral. The numeral is the
             reason this chart is legible in greyscale. */}
-        {geometry.axes.map(axis => (
+        {!compact && geometry.axes.map(axis => (
           <text
             key={`l${axis.key}`}
             x={axis.labelPoint.x}
@@ -157,11 +180,13 @@ export function MaturityRadar({ inputs }: { inputs: RadarInput[] }) {
         ))}
       </svg>
 
+      {!compact && (
       <figcaption className="text-[11px] text-ink-muted leading-relaxed mt-1 text-center max-w-[340px] mx-auto">
         {geometry.degenerate
           ? "Nothing evidenced yet — the plot sits at the centre on all seven axes."
           : "Each axis plots the highest level with no outstanding item below it. Spoke thickness reflects how many blocking items a dimension carries; it never changes a plotted level."}
       </figcaption>
+      )}
     </figure>
   );
 }

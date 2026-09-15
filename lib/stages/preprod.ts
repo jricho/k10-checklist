@@ -14,6 +14,7 @@ import * as C from "../commands";
 export const PREPROD_STAGE: Stage = {
   id: "preprod",
   name: "Pre-Production",
+  jobTitle: "Harden protection for production",
   strapline: "Policy-driven, application-consistent, offsite and immutable",
   roadmapPhase: "Roadmap Phase 2 — Harden the Basics (Days 15–45, M4–M6)",
   playbookRefs: [

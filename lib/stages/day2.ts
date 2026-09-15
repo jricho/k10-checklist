@@ -16,6 +16,7 @@ import * as C from "../commands";
 export const DAY2_STAGE: Stage = {
   id: "day2",
   name: "Day-2 Operations",
+  jobTitle: "Keep it proven",
   strapline: "Sustain and advance maturity — this stage never completes",
   roadmapPhase: "Roadmap Phase 4 — Prove Value (Days 76–100, M10–M12) and beyond",
   playbookRefs: [

@@ -2,8 +2,9 @@
 
 import { STAGES, type StageId, type StatusMap, progressForStage } from "../../lib/checklist-data";
 import { Panel } from "../ui/panel";
+import Link from "next/link";
 import { GATE } from "./gate";
-import { PAGE_ANCHORS } from "./page-anchors";
+import { stageHref } from "../../lib/routes";
 import { ChevronRightIcon, Marker } from "../ui/icon";
 
 // The journey, as navigation.
@@ -28,93 +29,71 @@ import { ChevronRightIcon, Marker } from "../ui/icon";
 export function StageNav({
   active,
   statuses,
-  onSelect,
 }: {
   active: StageId;
   statuses: StatusMap;
-  onSelect: (stage: StageId) => void;
 }) {
   return (
     // Shown below `lg` only: from there up the sticky sidebar carries navigation.
-    <>
-      <nav aria-label="Journey stages" className="lg:hidden grid grid-cols-2 gap-3 mb-5">
-        {STAGES.map((stage, i) => {
-          const p = progressForStage(stage.id, statuses);
-          const isActive = stage.id === active;
-          const gate = GATE[p.gate];
-          return (
-            <button
-              key={stage.id}
-              type="button"
-              onClick={() => onSelect(stage.id)}
-              aria-current={isActive ? "step" : undefined}
-              className={`group relative text-left rounded-card border overflow-hidden transition-all duration-150 ${
-                isActive
-                  ? "border-brand-600 bg-brand-50 shadow-card"
-                  : "border-line bg-surface hover:border-line-strong hover:shadow-card"
+    <nav aria-label="Journey stages" className="lg:hidden grid grid-cols-2 gap-3 mb-5">
+      {STAGES.map((stage, i) => {
+        const p = progressForStage(stage.id, statuses);
+        const isActive = stage.id === active;
+        const gate = GATE[p.gate];
+        return (
+          <Link
+            key={stage.id}
+            href={stageHref(stage.id)}
+            aria-current={isActive ? "step" : undefined}
+            className={`group relative text-left rounded-card border overflow-hidden transition-all duration-150 ${
+              isActive
+                ? "border-brand-600 bg-brand-50 shadow-card"
+                : "border-line bg-surface hover:border-line-strong hover:shadow-card"
+            }`}
+          >
+            {/* Position marker: a filled rule, not a filled card. */}
+            <span
+              aria-hidden="true"
+              className={`absolute inset-x-0 top-0 h-[3px] ${
+                isActive ? "bg-brand-600" : "bg-transparent group-hover:bg-line-strong"
               }`}
-            >
-              {/* Position marker: a filled rule, not a filled card. */}
-              <span
-                aria-hidden="true"
-                className={`absolute inset-x-0 top-0 h-[3px] ${
-                  isActive ? "bg-brand-600" : "bg-transparent group-hover:bg-line-strong"
-                }`}
-              />
-              <span className="block p-4 pt-[15px]">
-                <span className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="font-mono text-2xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
-                    Stage {i + 1}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-2xs font-semibold text-ink-muted">
-                    <span className={`w-1.5 h-1.5 rounded-full ${gate.dot}`} />
-                    {gate.short}
-                  </span>
+            />
+            <span className="block p-4 pt-[15px]">
+              <span className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="font-mono text-2xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
+                  Stage {i + 1}
                 </span>
-                <span
-                  className={`block font-display text-sm font-semibold mb-1 ${
-                    isActive ? "text-brand-900" : "text-ink"
-                  }`}
-                >
-                  {stage.name}
-                </span>
-                <span className="block text-xs leading-snug text-ink-muted mb-2.5">
-                  {stage.strapline}
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="h-1 flex-1 rounded-full overflow-hidden bg-line">
-                    <span
-                      className="block h-full rounded-full bg-brand-600 transition-[width] duration-300"
-                      style={{ width: `${p.percent}%` }}
-                    />
-                  </span>
-                  <span className="text-2xs font-semibold tabular-nums text-ink-muted">
-                    {p.passed}/{p.applicable}
-                  </span>
+                <span className="inline-flex items-center gap-1.5 text-2xs font-semibold text-ink-muted">
+                  <span className={`w-1.5 h-1.5 rounded-full ${gate.dot}`} />
+                  {gate.short}
                 </span>
               </span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* The sidebar's "On this page" list, as a chip row. Without this the
-          maturity panel and the tiers table are reachable only by scrolling past
-          the whole checklist — which on a phone is 112 rows.
-          No icon: a chevron on a pill reads as a dropdown affordance, and the
-          sidebar's equivalent entries carry none either. */}
-      <nav aria-label="Page sections" className="lg:hidden flex flex-wrap gap-2 mb-5">
-        {PAGE_ANCHORS.map(anchor => (
-          <a
-            key={anchor.id}
-            href={`#${anchor.id}`}
-            className="rounded-full border border-line bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft hover:border-line-strong hover:text-ink transition-colors"
-          >
-            {anchor.short}
-          </a>
-        ))}
-      </nav>
-    </>
+              <span
+                className={`block font-display text-sm font-semibold mb-1 ${
+                  isActive ? "text-brand-900" : "text-ink"
+                }`}
+              >
+                {stage.name}
+              </span>
+              <span className="block text-xs leading-snug text-ink-muted mb-2.5">
+                {stage.strapline}
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="h-1 flex-1 rounded-full overflow-hidden bg-line">
+                  <span
+                    className="block h-full rounded-full bg-brand-600 transition-[width] duration-300"
+                    style={{ width: `${p.percent}%` }}
+                  />
+                </span>
+                <span className="text-2xs font-semibold tabular-nums text-ink-muted">
+                  {p.passed}/{p.applicable}
+                </span>
+              </span>
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 

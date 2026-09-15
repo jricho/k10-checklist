@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { ReferenceDrawer } from "./reference-drawer";
 import { useAssessmentContext } from "./assessment-provider";
 import { overallProgress } from "../../lib/checklist-data";
+import { ROUTES, stageHref } from "../../lib/routes";
 import {
   downloadJson,
   exportAssessmentPdf,
@@ -27,10 +28,19 @@ import {
 // Scoped to the route group rather than the root layout deliberately:
 // /legacy carries its own header and footer, and would render two of each.
 
+// `match` decides which tab is lit. The four stage routes live under
+// /assessment/<slug>, so that tab is active for any of them rather than for one
+// exact path — without the prefix test, walking the journey would leave no tab
+// marked at all.
 const TABS = [
-  { href: "/", label: "Checklist" },
-  { href: "/maturity", label: "Maturity" },
-  { href: "/diagnostics", label: "Diagnostics" },
+  { href: ROUTES.overview, label: "Overview", match: (p: string) => p === ROUTES.overview },
+  { href: stageHref("poc"), label: "Assessment", match: (p: string) => p.startsWith("/assessment") },
+  { href: ROUTES.maturity, label: "Maturity", match: (p: string) => p === ROUTES.maturity },
+  {
+    href: ROUTES.clusterCapture,
+    label: "Cluster Capture",
+    match: (p: string) => p === ROUTES.clusterCapture,
+  },
 ] as const;
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
@@ -189,7 +199,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
           className="max-w-[86rem] mx-auto px-6 flex items-center gap-1 -mb-px overflow-x-auto"
         >
           {TABS.map(tab => {
-            const isActive = pathname === tab.href;
+            const isActive = tab.match(pathname);
             return (
               <Link
                 key={tab.href}
