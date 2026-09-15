@@ -9,6 +9,7 @@ import {
 } from "../../lib/checklist-data";
 import { overallProgress } from "../../lib/checklist-data";
 import { GATE } from "./gate";
+import { PAGE_ANCHORS } from "./page-anchors";
 
 // Left rail.
 //
@@ -156,6 +157,28 @@ export function Sidebar({
               </li>
             );
           })}
+        </ul>
+      </nav>
+
+      {/* Page-level panels. Separated from the Sections list above because these
+          do not belong to the stage in view — see page-anchors.ts. */}
+      <nav className="bg-surface border border-line rounded-card shadow-card overflow-hidden mt-3">
+        <h2 className="px-3 py-2 text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted border-b border-line bg-surface-sunken">
+          On this page
+        </h2>
+        <ul>
+          {PAGE_ANCHORS.map(anchor => (
+            <li key={anchor.id}>
+              <a
+                href={`#${anchor.id}`}
+                className="block px-3 py-2 border-b border-line last:border-b-0 hover:bg-surface-sunken transition-colors group"
+              >
+                <span className="text-2xs leading-snug text-ink-soft group-hover:text-ink">
+                  {anchor.label}
+                </span>
+              </a>
+            </li>
+          ))}
         </ul>
       </nav>
 
