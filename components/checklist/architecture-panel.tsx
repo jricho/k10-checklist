@@ -25,7 +25,8 @@ import { Chip, Panel, PanelHeader } from "../ui/panel";
 // intention; a measured restore is what happened.
 
 // suppressHydrationWarning on each input: same third-party form annotation as
-// the Field inputs in app/page.tsx. See the comment there for the reasoning.
+// the Field inputs in app/(assessment)/page.tsx. See the comment there for the
+// reasoning.
 function TierRow({
   tier,
   onChange,
