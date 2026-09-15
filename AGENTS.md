@@ -18,12 +18,21 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `lib/checklist-state.ts` | `useAssessment()` — persistence, import/export |
 | `lib/export-pdf.ts` | `PdfWriter` and the PDF export |
 | `components/checklist/` | Stage nav, section card, maturity panel, diagnostics |
-| `app/page.tsx` | Composition only — no data, no PDF logic |
+| `app/(assessment)/layout.tsx` | Provider + shared chrome for the three assessment routes |
+| `app/(assessment)/page.tsx` | The checklist. Composition only — no data, no PDF logic |
+| `app/(assessment)/maturity/page.tsx` | Maturity model in full. Derived, nothing editable |
+| `app/(assessment)/diagnostics/page.tsx` | Diagnostic captures and the architecture diagram |
 | `app/legacy/page.tsx` | Frozen copy of the old flat checklist. Do not extend |
 
-`app/page.tsx` is deliberately thin. Checklist content changes belong in
-`lib/stages/`, command changes in `lib/commands.ts`, and PDF layout changes in
-`lib/export-pdf.ts` — never mixed back into the page.
+`app/(assessment)/page.tsx` is deliberately thin. Checklist content changes
+belong in `lib/stages/`, command changes in `lib/commands.ts`, and PDF layout
+changes in `lib/export-pdf.ts` — never mixed back into the page.
+
+The three routes are one assessment seen three ways, so state is hoisted into
+`AssessmentProvider` in the group layout and read with `useAssessmentContext()`.
+Do not call `useAssessment()` from a page: it owns a write-back effect, and a
+second instance means two writers for one storage key. `/legacy` and `/design`
+sit outside the group on purpose — `/legacy` carries its own header and footer.
 
 ## Item ids are permanent
 
@@ -101,6 +110,11 @@ Assessment state persists to `localStorage`; the uploaded architecture diagram
 deliberately does **not**. A real cluster PNG is several MB as a data URL against
 a ~5 MB quota, and writing it there fails the whole save — taking the checklist
 answers with it.
+
+Because it is not persisted, the diagram is the reason `AssessmentProvider`
+exists rather than each route calling `useAssessment()`: it is attached on
+`/diagnostics` and consumed by Export PDF in the shared header, so it has to
+outlive a route change. It still does not outlive a reload.
 
 ## The reference search index
 
