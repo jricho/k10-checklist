@@ -100,16 +100,17 @@ export function StageNav({
 
       {/* The sidebar's "On this page" list, as a chip row. Without this the
           maturity panel and the tiers table are reachable only by scrolling past
-          the whole checklist — which on a phone is 112 rows. */}
+          the whole checklist — which on a phone is 112 rows.
+          No icon: a chevron on a pill reads as a dropdown affordance, and the
+          sidebar's equivalent entries carry none either. */}
       <nav aria-label="Page sections" className="lg:hidden flex flex-wrap gap-2 mb-5">
         {PAGE_ANCHORS.map(anchor => (
           <a
             key={anchor.id}
             href={`#${anchor.id}`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft hover:border-line-strong hover:text-ink transition-colors"
+            className="rounded-full border border-line bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft hover:border-line-strong hover:text-ink transition-colors"
           >
             {anchor.short}
-            <ChevronRightIcon className="rotate-90 text-ink-muted" />
           </a>
         ))}
       </nav>
