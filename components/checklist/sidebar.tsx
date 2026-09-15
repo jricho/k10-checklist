@@ -7,9 +7,10 @@ import {
   type StageId,
   type StatusMap,
 } from "../../lib/checklist-data";
+import Link from "next/link";
 import { overallProgress } from "../../lib/checklist-data";
 import { GATE } from "./gate";
-import { PAGE_ANCHORS } from "./page-anchors";
+import { stageHref } from "../../lib/routes";
 
 // Left rail.
 //
@@ -27,11 +28,9 @@ import { PAGE_ANCHORS } from "./page-anchors";
 export function Sidebar({
   activeStage,
   statuses,
-  onSelect,
 }: {
   activeStage: StageId;
   statuses: StatusMap;
-  onSelect: (stage: StageId) => void;
 }) {
   const active = STAGES.find(s => s.id === activeStage)!;
   const activeProgress = progressForStage(activeStage, statuses);
@@ -65,11 +64,10 @@ export function Sidebar({
             const g = GATE[p.gate];
             return (
               <li key={stage.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(stage.id)}
+                <Link
+                  href={stageHref(stage.id)}
                   aria-current={isActive ? "step" : undefined}
-                  className={`group relative w-full text-left px-3 py-2.5 border-b border-line last:border-b-0 transition-colors ${
+                  className={`group relative block w-full text-left px-3 py-2.5 border-b border-line last:border-b-0 transition-colors ${
                     isActive ? "bg-brand-50" : "hover:bg-surface-sunken"
                   }`}
                 >
@@ -107,7 +105,7 @@ export function Sidebar({
                       {p.passed}/{p.applicable}
                     </span>
                   </span>
-                </button>
+                </Link>
               </li>
             );
           })}
@@ -160,27 +158,9 @@ export function Sidebar({
         </ul>
       </nav>
 
-      {/* Page-level panels. Separated from the Sections list above because these
-          do not belong to the stage in view — see page-anchors.ts. */}
-      <nav className="bg-surface border border-line rounded-card shadow-card overflow-hidden mt-3">
-        <h2 className="px-3 py-2 text-2xs font-semibold uppercase tracking-[0.12em] text-ink-muted border-b border-line bg-surface-sunken">
-          On this page
-        </h2>
-        <ul>
-          {PAGE_ANCHORS.map(anchor => (
-            <li key={anchor.id}>
-              <a
-                href={`#${anchor.id}`}
-                className="block px-3 py-2 border-b border-line last:border-b-0 hover:bg-surface-sunken transition-colors group"
-              >
-                <span className="text-2xs leading-snug text-ink-soft group-hover:text-ink">
-                  {anchor.label}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {/* The "On this page" block is gone: the maturity panel and the tier table
+          are no longer on this page to jump to. They are routes and the overview
+          respectively, reached from the chrome's tabs. */}
 
       <div className="mt-3 px-3 py-2.5 rounded-card border border-line bg-surface-sunken">
         <div className="flex items-baseline justify-between">

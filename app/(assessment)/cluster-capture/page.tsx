@@ -6,7 +6,11 @@ import { DiagnosticsCard } from "../../../components/checklist/diagnostics-card"
 import { useAssessmentContext } from "../../../components/checklist/assessment-provider";
 import { ExternalLinkIcon } from "../../../components/ui/icon";
 
-// Diagnostic captures and the architecture diagram.
+// Cluster capture: the read-only commands and the architecture diagram.
+//
+// Named for what it does rather than for what it looked like. "Diagnostics"
+// implied fault-finding; nothing here diagnoses anything. It records what the
+// cluster looks like so the pack shows observed state, not only ticked boxes.
 //
 // Previously a "Show diagnostic captures & architecture diagram" toggle at the
 // foot of the checklist, collapsed by default — which meant the commands people
@@ -43,7 +47,7 @@ export default function DiagnosticsPage() {
         <p className="font-mono text-2xs font-semibold uppercase tracking-[0.16em] text-ink-muted mb-2">
           Veeam Kasten · Evidence capture
         </p>
-        <h1 className="font-display text-2xl font-bold text-ink mb-3">Diagnostic captures</h1>
+        <h1 className="font-display text-2xl font-bold text-ink mb-3">Cluster capture</h1>
         <p className="text-base text-ink-soft max-w-[70ch] leading-relaxed">
           Run these against the cluster and paste the output back. The captures are saved with the assessment
           and reproduced in the PDF export, so the record shows what was observed rather than only what was

@@ -18,15 +18,25 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `lib/checklist-state.ts` | `useAssessment()` — persistence, import/export |
 | `lib/export-pdf.ts` | `PdfWriter` and the PDF export |
 | `components/checklist/` | Stage nav, section card, maturity panel, diagnostics |
-| `app/(assessment)/layout.tsx` | Provider + shared chrome for the three assessment routes |
-| `app/(assessment)/page.tsx` | The checklist. Composition only — no data, no PDF logic |
+| `app/(assessment)/layout.tsx` | Provider + shared chrome for the assessment routes |
+| `app/(assessment)/page.tsx` | The overview. Doors, plus the engagement detail |
+| `app/(assessment)/assessment/[stage]/page.tsx` | One stage of the checklist, prerendered per slug |
 | `app/(assessment)/maturity/page.tsx` | Maturity model in full. Derived, nothing editable |
-| `app/(assessment)/diagnostics/page.tsx` | Diagnostic captures and the architecture diagram |
+| `app/(assessment)/cluster-capture/page.tsx` | Cluster captures and the architecture diagram |
+| `lib/routes.ts` | Stage slugs and route builders. Slugs ≠ stage ids, deliberately |
 | `app/legacy/page.tsx` | Frozen copy of the old flat checklist. Do not extend |
 
-`app/(assessment)/page.tsx` is deliberately thin. Checklist content changes
-belong in `lib/stages/`, command changes in `lib/commands.ts`, and PDF layout
-changes in `lib/export-pdf.ts` — never mixed back into the page.
+The pages are deliberately thin. Checklist content changes belong in
+`lib/stages/`, command changes in `lib/commands.ts`, and PDF layout changes in
+`lib/export-pdf.ts` — never mixed back into a page.
+
+The stage is carried by the URL, not by component state, so a stage is something
+you can link to. `activeStage` in the saved assessment survives as *last
+visited*, written on arrival by `StageChecklist`, and read only by the overview's
+resume bar. Stage **slugs** (`pre-production`) and stage **ids** (`preprod`) are
+different strings on purpose: ids are persisted in every saved file and are as
+permanent as item ids, slugs are read by customers. `lib/routes.ts` owns the map;
+never derive one from the other.
 
 The three routes are one assessment seen three ways, so state is hoisted into
 `AssessmentProvider` in the group layout and read with `useAssessmentContext()`.

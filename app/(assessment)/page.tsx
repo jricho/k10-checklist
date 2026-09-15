@@ -1,267 +1,274 @@
 "use client";
 
-import React, { useState } from "react";
-import { StageNav, StageHeader } from "../../components/checklist/stage-nav";
-import { Sidebar } from "../../components/checklist/sidebar";
-import { SectionCard } from "../../components/checklist/section-card";
-import { PillarFilter } from "../../components/checklist/pillar-filter";
-import { MaturitySummary } from "../../components/checklist/maturity-summary";
-import { ArchitecturePanel } from "../../components/checklist/architecture-panel";
+import React from "react";
+import Link from "next/link";
+import { AssessmentIdentity } from "../../components/checklist/assessment-identity";
+import { MaturityTile } from "../../components/checklist/maturity-tile";
 import { useAssessmentContext } from "../../components/checklist/assessment-provider";
-import { STAGES, STAGES_BY_ID, itemsForStage, type PillarId } from "../../lib/checklist-data";
-import {
-  ChevronRightIcon,
-  DocumentIcon,
-  DownloadIcon,
-  ExternalLinkIcon,
-  SpreadsheetIcon,
-} from "../../components/ui/icon";
+import { GATE } from "../../components/checklist/gate";
+import { STAGES, STAGES_BY_ID, progressForStage } from "../../lib/checklist-data";
+import { ROUTES, stageHref } from "../../lib/routes";
+import { DocumentIcon, DownloadIcon, ExternalLinkIcon, SpreadsheetIcon } from "../../components/ui/icon";
 
-// The page is composition only: state comes from the provider, structure from
-// `lib/checklist-data`, output from `lib/export-pdf`. The original version held
-// the checklist data, all the UI, and 120 lines of PDF layout in one 1,000-line
-// client component, which meant adding a checklist item required editing the
-// same file as the PDF page-break arithmetic.
+// The overview: where a customer decides what to do next.
 //
-// Chrome — masthead bar, route tabs, Ask, Export, footer — now lives in
-// AppChrome, shared with /maturity and /diagnostics. What remains here is the
-// checklist itself plus the two panels that belong beside it: the tier table,
-// which the DR items are assessed against, and the maturity summary.
+// Organised by the job rather than by the stage, because someone arriving at the
+// tool is choosing an action, not identifying which phase of a roadmap they are
+// nominally in. The two headings carry the separation the routes only imply —
+// on the left, things you fill in, in order, each gating the next; on the right,
+// things that are simply true of the estate, derived and read-only.
+//
+// Everything here is a door. The only editing on this page is the engagement
+// detail behind the identity strip's disclosure, because that is the one thing
+// that belongs to the assessment as a whole rather than to any stage.
 
-export default function ChecklistPage() {
+export default function OverviewPage() {
   const { ctrl } = useAssessmentContext();
-  const { assessment, setMeta, setStatus, setNote, setActiveStage } = ctrl;
-  const { meta, statuses, notes, activeStage } = assessment;
+  const { assessment, loaded } = ctrl;
+  const { statuses, activeStage } = assessment;
 
-  // Deliberately component state, not persisted. A filter restored on load would
-  // hide items without the click that explains why — see pillar-filter.tsx.
-  const [pillar, setPillar] = useState<PillarId | null>(null);
-
-  const stage = STAGES_BY_ID[activeStage];
+  const resumeStage = STAGES_BY_ID[activeStage];
+  const resumeProgress = progressForStage(activeStage, statuses);
+  // A fresh assessment has nothing to resume: offering "continue" to someone who
+  // has answered nothing is an empty gesture, and the POC tile is already the
+  // obvious move. `loaded` gates it so the bar cannot flash in before
+  // localStorage has been read.
+  //
+  // The test is on the assessment as a whole, not on the last-visited stage.
+  // Reading ahead is a normal thing to do — answer six items in the POC, click
+  // through to Go-Live to see what is coming, then return — and keying the bar
+  // on that stage's own progress made it vanish at exactly that moment, which is
+  // when a customer most wants the way back.
+  const resuming = loaded && Object.values(statuses).some(s => s !== "pending");
 
   return (
-    <>
-      {/* One staggered reveal on load, applied to the top-level regions only —
-          see globals.css. Per-item animation across 112 rows would read as
-          jitter, and anything that animates after load (expanding a section,
-          flipping a status) is deliberately instant: in an instrument, animated
-          feedback reads as latency. `--reveal-index` sets the cascade. */}
-      <main className="max-w-[86rem] mx-auto px-6 py-7">
-        {/* Masthead.
-            The previous version read as four clipped imperatives — "Prove that
-            recovery works. Make protection automatic…" — which is manifesto
-            register, not the register of an artefact somebody signs. It was also
-            doing the stage headers' job: explaining the method rather than
-            identifying the document.
-
-            So: an eyebrow that says what this is, a title, one measured sentence
-            of scope, and the stage sequence as a named progression rather than a
-            chain of instructions. The method belongs in each stage header, where
-            it already lives alongside that stage's exit criteria. */}
-        <header className="mb-6 reveal" style={{ "--reveal-index": "0" } as React.CSSProperties}>
-          <p className="font-mono text-2xs font-semibold uppercase tracking-[0.16em] text-ink-muted mb-2">
-            Veeam Kasten · Readiness assessment
-          </p>
-          {/* Title row carries the reference documents.
-              They were a labelled link row below the standfirst, which read as a
-              third block of text in a masthead that only needed two. As bordered
-              icon affordances on the title's baseline they occupy the empty space
-              to the right of a short title, and they read as apparatus —
-              something you reach for — rather than as more prose. */}
-          <div className="flex flex-wrap items-start justify-between gap-6 mb-3">
-            <h1 className="font-display text-2xl font-bold text-ink max-w-[24ch] sm:max-w-none">
-              Readiness and operating maturity
-            </h1>
-            <div className="flex items-center gap-2 shrink-0 pt-0.5">
-              {/* Icon-only, so each needs an accessible name and a tooltip: the
-                  glyph alone never conveys which document it opens. */}
-              <a
-                href="/kasten-resilience-playbook.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="The Kasten Resilience Playbook (PDF) — opens in a new tab"
-                aria-label="Open The Kasten Resilience Playbook, PDF, in a new tab"
-                className="group flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink-muted transition-colors hover:border-brand-600 hover:text-brand-700 hover:bg-brand-50"
-              >
-                <DocumentIcon className="h-7 w-7" />
-                <span className="hidden xl:inline text-sm font-semibold">Playbook</span>
-                <ExternalLinkIcon className="text-ink-faint group-hover:text-brand-700" />
-              </a>
-              <a
-                href="/kasten-maturity-self-assessment.xlsx"
-                download
-                title="Maturity Self-Assessment workbook (XLSX) — downloads"
-                aria-label="Download the Maturity Self-Assessment workbook, XLSX"
-                className="group flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink-muted transition-colors hover:border-brand-600 hover:text-brand-700 hover:bg-brand-50"
-              >
-                <SpreadsheetIcon className="h-7 w-7" />
-                <span className="hidden xl:inline text-sm font-semibold">Workbook</span>
-                <DownloadIcon className="text-ink-faint group-hover:text-brand-700" />
-              </a>
-            </div>
+    <main className="max-w-[86rem] mx-auto px-6 py-7">
+      <header className="mb-6 reveal" style={{ "--reveal-index": "0" } as React.CSSProperties}>
+        <p className="font-mono text-2xs font-semibold uppercase tracking-[0.16em] text-ink-muted mb-2">
+          Veeam Kasten · Readiness assessment
+        </p>
+        <div className="flex flex-wrap items-start justify-between gap-6 mb-3">
+          <h1 className="font-display text-2xl font-bold text-ink max-w-[24ch] sm:max-w-none">
+            Readiness and operating maturity
+          </h1>
+          <div className="flex items-center gap-2 shrink-0 pt-0.5">
+            <a
+              href="/kasten-resilience-playbook.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="The Kasten Resilience Playbook (PDF) — opens in a new tab"
+              aria-label="Open The Kasten Resilience Playbook, PDF, in a new tab"
+              className="group flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink-muted transition-colors hover:border-brand-600 hover:text-brand-700 hover:bg-brand-50"
+            >
+              <DocumentIcon className="h-7 w-7" />
+              <span className="hidden xl:inline text-sm font-semibold">Playbook</span>
+              <ExternalLinkIcon className="text-ink-faint group-hover:text-brand-700" />
+            </a>
+            <a
+              href="/kasten-maturity-self-assessment.xlsx"
+              download
+              title="Maturity Self-Assessment workbook (XLSX) — downloads"
+              aria-label="Download the Maturity Self-Assessment workbook, XLSX"
+              className="group flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink-muted transition-colors hover:border-brand-600 hover:text-brand-700 hover:bg-brand-50"
+            >
+              <SpreadsheetIcon className="h-7 w-7" />
+              <span className="hidden xl:inline text-sm font-semibold">Workbook</span>
+              <DownloadIcon className="text-ink-faint group-hover:text-brand-700" />
+            </a>
           </div>
-          <p className="text-base text-ink-soft max-w-[70ch] leading-relaxed">
-            A staged verification of a Veeam Kasten deployment — from proof of concept, through production readiness,
-            to day-2 operating maturity — evidenced against a live cluster and exported as a signable record.
-          </p>
+        </div>
+        <p className="text-base text-ink-soft max-w-[70ch] leading-relaxed">
+          A staged verification of a Veeam Kasten deployment — from proof of concept, through production readiness,
+          to day-2 operating maturity — evidenced against a live cluster and exported as a signable record.
+        </p>
+      </header>
 
-          {/* The four stages as a progression, generated from the data so the
-              masthead cannot drift from the stages themselves. Names only: the
-              sidebar carries the counts and each stage header carries its goal,
-              so repeating either here would be noise. */}
-          <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 mt-4">
-            {STAGES.map((s, i) => (
-              <li key={s.id} className="flex items-center gap-2">
-                {i > 0 && <ChevronRightIcon className="text-line-strong" />}
-                <button
-                  type="button"
-                  onClick={() => setActiveStage(s.id)}
-                  className={`inline-flex items-baseline gap-1.5 rounded-md px-2 py-1 text-xs font-semibold transition-colors ${
-                    s.id === activeStage
-                      ? "bg-brand-50 text-brand-900"
-                      : "text-ink-muted hover:bg-surface-sunken hover:text-ink"
-                  }`}
-                >
-                  <span className="font-mono text-2xs text-ink-faint">{i + 1}</span>
-                  {s.name}
-                </button>
-              </li>
-            ))}
-          </ol>
-        </header>
-
-        {ctrl.persistError && (
-          <div
-            role="alert"
-            className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-800"
-          >
-            {ctrl.persistError}
-          </div>
-        )}
-
-        {/* Engagement details */}
+      {ctrl.persistError && (
         <div
-          className="bg-surface rounded-card border border-line shadow-card p-5 mb-5 reveal"
-          style={{ "--reveal-index": "1" } as React.CSSProperties}
+          role="alert"
+          className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-800"
         >
-          <h2 className="text-xs font-semibold text-ink-muted mb-4 uppercase tracking-wide">Assessment details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <Field label="Project name" value={meta.project} onChange={v => setMeta("project", v)} placeholder="Project name" />
-            <Field label="Cluster" value={meta.clusterName} onChange={v => setMeta("clusterName", v)} placeholder="Cluster name or context" />
-            <Field label="Assessor" value={meta.assessor} onChange={v => setMeta("assessor", v)} placeholder="Who performed this" />
-            <Field label="Date" value={meta.date} onChange={v => setMeta("date", v)} type="date" />
-          </div>
-          {/* RPO/RTO used to be a textarea here. It now lives in the tiers table
-              in the architecture panel, because a textarea cannot tell you that
-              a two-hour RTO and an export-only topology are incompatible. */}
-          <p className="text-[13px] text-ink-muted">
-            RPO and RTO targets are recorded per workload tier in{" "}
-            <a href="#architecture" className="font-medium text-brand-700 hover:underline">
-              Workload tiers &amp; DR topology
-            </a>{" "}
-            below. Every disaster recovery item is assessed against them.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-line">
-            <Field label="Sign-off — Platform" value={meta.signoffPlatform} onChange={v => setMeta("signoffPlatform", v)} placeholder="Name & date" />
-            <Field label="Sign-off — Security / Compliance" value={meta.signoffSecurity} onChange={v => setMeta("signoffSecurity", v)} placeholder="Name & date" />
-            <Field label="Sign-off — Workload owner" value={meta.signoffWorkloadOwner} onChange={v => setMeta("signoffWorkloadOwner", v)} placeholder="Name & date" />
-          </div>
+          {ctrl.persistError}
         </div>
+      )}
 
-        {/* Two columns from `lg` up: sticky rail plus content. Below that the
-            rail is hidden and StageNav supplies navigation inline. */}
-        <div className="flex gap-6 items-start">
-          <Sidebar activeStage={activeStage} statuses={statuses} onSelect={setActiveStage} />
+      <div className="reveal" style={{ "--reveal-index": "1" } as React.CSSProperties}>
+        <AssessmentIdentity />
+      </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="reveal" style={{ "--reveal-index": "2" } as React.CSSProperties}>
-              <StageNav active={activeStage} statuses={statuses} onSelect={setActiveStage} />
-              <StageHeader stageId={activeStage} statuses={statuses} />
-            </div>
-
-            <div className="reveal" style={{ "--reveal-index": "3" } as React.CSSProperties}>
-              <PillarFilter
-                items={itemsForStage(activeStage)}
-                statuses={statuses}
-                active={pillar}
-                onChange={setPillar}
-              />
-
-              <div className="space-y-5">
-                {stage.sections.map(section => (
-                  <SectionCard
-                    key={section.id}
-                    section={section}
-                    statuses={statuses}
-                    notes={notes}
-                    onStatus={setStatus}
-                    onNote={setNote}
-                    pillar={pillar}
-                  />
-                ))}
+      {resuming && (
+        <Link
+          href={stageHref(activeStage)}
+          className="group block bg-surface rounded-card border border-line border-l-[3px] border-l-brand-600 shadow-raised px-6 py-5 mb-7 reveal"
+          style={{ "--reveal-index": "2" } as React.CSSProperties}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="min-w-0">
+              <div className="text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint mb-1.5">
+                Where you left off · Stage {STAGES.findIndex(s => s.id === activeStage) + 1}
+              </div>
+              <div className="font-display text-xl font-semibold text-ink mb-1">{resumeStage.jobTitle}</div>
+              <div className="text-[13px] text-ink-muted">
+                {resumeProgress.blockersOutstanding.length === 0
+                  ? "No blocking items outstanding in this stage."
+                  : `${resumeProgress.blockersOutstanding.length} blocking item${
+                      resumeProgress.blockersOutstanding.length === 1 ? "" : "s"
+                    } outstanding`}
               </div>
             </div>
-
-            <div className="mt-8 space-y-6 reveal" style={{ "--reveal-index": "4" } as React.CSSProperties}>
-              <div id="architecture" className="scroll-mt-20">
-                <ArchitecturePanel
-                  tiers={assessment.tiers}
-                  notes={meta.rtoRpoNotes}
-                  onTierChange={ctrl.updateTier}
-                  onAddTier={ctrl.addTier}
-                  onRemoveTier={ctrl.removeTier}
-                  onNotesChange={v => setMeta("rtoRpoNotes", v)}
-                />
+            <div className="flex items-center gap-6 shrink-0">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-ink tabular-nums leading-none">
+                  {resumeProgress.passed}
+                  <span className="text-base text-ink-faint font-semibold">/{resumeProgress.applicable}</span>
+                </div>
+                <div className="w-32 h-1 rounded-full overflow-hidden bg-line mt-2">
+                  <div className="h-full rounded-full bg-brand-600" style={{ width: `${resumeProgress.percent}%` }} />
+                </div>
               </div>
-
-              <MaturitySummary statuses={statuses} />
+              <span className="bg-brand-700 group-hover:bg-brand-800 text-white px-5 py-3 rounded-lg font-semibold text-[13px] transition-colors">
+                Continue →
+              </span>
             </div>
           </div>
-        </div>
-      </main>
-    </>
+        </Link>
+      )}
+
+      <div
+        className="grid lg:grid-cols-5 gap-7 items-start reveal"
+        style={{ "--reveal-index": "3" } as React.CSSProperties}
+      >
+        {/* min-w-0: a grid item defaults to min-width:auto, so the nowrap
+            kubectl line in the capture tile pushed its track — and the whole
+            document — wider than a phone viewport. */}
+        <section className="lg:col-span-3 min-w-0">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-display text-lg font-semibold text-ink">Do the work</h2>
+            <span className="text-2xs text-ink-faint">Four stages, in order — each gates the next</span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {STAGES.map((stage, i) => (
+              <StageTile key={stage.id} index={i} stageId={stage.id} statuses={statuses} />
+            ))}
+          </div>
+        </section>
+
+        <section className="lg:col-span-2 min-w-0">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-display text-lg font-semibold text-ink">Read the result</h2>
+            <span className="text-2xs text-ink-faint">Derived — nothing to fill in</span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <MaturityTile statuses={statuses} />
+            <CaptureTile />
+            <ExportCard />
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
+function StageTile({
+  index,
+  stageId,
+  statuses,
 }: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  type?: string;
+  index: number;
+  stageId: (typeof STAGES)[number]["id"];
+  statuses: Parameters<typeof progressForStage>[1];
 }) {
-  const id = `field-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`;
+  const stage = STAGES_BY_ID[stageId];
+  const p = progressForStage(stageId, statuses);
+  const gate = GATE[p.gate];
+  const started = p.passed + p.failed + p.na > 0;
+
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-ink-soft mb-1">
-        {label}
-      </label>
-      {/* suppressHydrationWarning is for third-party DOM mutation, not for our
-          own mismatches.
-          Enterprise browsers and password managers annotate form fields before
-          React hydrates — Island Browser adds `island_form_infra_*` and
-          `island_field_signature` to every text input, which React then reports
-          as a server/client attribute mismatch on all six fields here. Nothing in
-          this component varies between server and client: value comes from state
-          that starts empty, and id is derived from the static label.
-          The suppression is scoped to this element's attributes only, and the
-          cost of leaving it noisy is that a real hydration error gets lost in
-          six spurious ones. */}
-      <input
-        id={id}
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        onChange={e => onChange(e.target.value)}
-        suppressHydrationWarning
-        className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
-      />
+    <Link
+      href={stageHref(stageId)}
+      className={`group block bg-surface rounded-card border shadow-card px-5 py-4 transition-colors ${
+        started ? "border-line-strong" : "border-line hover:border-line-strong"
+      }`}
+    >
+      <div className="flex gap-4 items-start">
+        <span className="font-mono text-2xs font-semibold text-ink-faint pt-1 w-3.5 shrink-0">{index + 1}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 mb-1">
+            <span className="font-display text-lg font-semibold text-ink group-hover:text-brand-800 transition-colors">
+              {stage.jobTitle}
+            </span>
+            <span className="text-2xs text-ink-faint">{stage.name}</span>
+          </div>
+          <p className="text-[13px] text-ink-muted leading-relaxed mb-2.5">{stage.strapline}</p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-44 max-w-[45%] h-1 rounded-full overflow-hidden bg-line">
+              <div className="h-full rounded-full bg-brand-600" style={{ width: `${p.percent}%` }} />
+            </div>
+            <span className="text-2xs font-semibold tabular-nums text-ink-muted">
+              {p.passed}/{p.applicable}
+            </span>
+          </div>
+        </div>
+        <div className="shrink-0 flex flex-col items-end gap-2">
+          {/* The gate travels with the tile. Without it a grid of four reads as
+              four parallel choices, and Go-Live looks as available as the POC. */}
+          <span className={`text-2xs font-bold tracking-[0.04em] px-2.5 py-1 rounded-md ${gate.badge}`}>
+            {gate.label(p.blockersOutstanding.length)}
+          </span>
+          <span className="text-xs font-semibold text-brand-700">
+            {started ? "Continue →" : p.gate === "blocked" ? "Read ahead →" : "Start →"}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function CaptureTile() {
+  const { ctrl, diagram } = useAssessmentContext();
+  const { outputs } = ctrl.assessment;
+  const captured = Object.values(outputs).filter(v => v.trim().length > 0).length;
+  const total = Object.keys(outputs).length;
+
+  return (
+    <Link
+      href={ROUTES.clusterCapture}
+      className="group block bg-surface rounded-card border border-line hover:border-line-strong shadow-card p-5 transition-colors"
+    >
+      <h2 className="text-base font-semibold text-ink mb-1">Capture cluster evidence</h2>
+      <p className="text-[13px] text-ink-muted leading-relaxed mb-3">
+        Read-only captures and the architecture diagram, reproduced in the export.
+      </p>
+      <div className="bg-slate-900 rounded-lg px-3 py-2.5 mb-3 overflow-x-auto">
+        <code className="font-mono text-2xs text-brand-200 whitespace-nowrap">
+          $ kubectl get policies.config.kio.kasten.io -A
+        </code>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-2xs text-ink-muted tabular-nums">
+          {captured} of {total} captured · {diagram ? "diagram attached" : "no diagram"}
+        </span>
+        <span className="text-xs font-semibold text-brand-700 shrink-0">Open the tool →</span>
+      </div>
+    </Link>
+  );
+}
+
+function ExportCard() {
+  return (
+    <div className="rounded-card border border-dashed border-line-strong bg-surface-sunken px-5 py-4 flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <div className="text-[13px] font-semibold text-ink mb-0.5">Export the evidence pack</div>
+        <div className="text-2xs text-ink-muted">Everything recorded so far, as a signable PDF</div>
+      </div>
+      {/* Deliberately quiet, and deliberately not a second Export button: the one
+          in the header is the control, and two would be two answers to "where do
+          I export". This says the pack exists and where it comes from. */}
+      <span className="text-2xs text-ink-faint shrink-0 text-right">
+        Export PDF,
+        <br />
+        top right
+      </span>
     </div>
   );
 }

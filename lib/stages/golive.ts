@@ -15,6 +15,7 @@ import * as C from "../commands";
 export const GOLIVE_STAGE: Stage = {
   id: "golive",
   name: "Go-Live",
+  jobTitle: "Clear the go-live gate",
   strapline: "Observable, alerting, DR designed and signed off",
   roadmapPhase: "Roadmap Phase 3 — Optimize & Harden (Days 46–75, M7–M9) + cutover",
   playbookRefs: [

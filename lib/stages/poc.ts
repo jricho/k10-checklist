@@ -14,7 +14,8 @@ import * as C from "../commands";
 export const POC_STAGE: Stage = {
   id: "poc",
   name: "Proof of Concept",
-  strapline: "Prove recovery works here, on something representative",
+  jobTitle: "Prove recovery works",
+  strapline: "A first restore, on something representative, with every gap written down",
   roadmapPhase: "Roadmap Phase 1 — Foundation (Days 1–14, M1–M3)",
   playbookRefs: [
     "2.3 Level 1–2 descriptors",
