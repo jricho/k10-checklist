@@ -27,7 +27,9 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
     scored.length > 0 ? scored.reduce((n, e) => n + e.evidencedLevel, 0) / scored.length : 0;
 
   return (
-    <section className="bg-surface rounded-card border border-line shadow-card p-5">
+    // Anchor target for both navigations. scroll-mt clears the sticky header,
+    // matching the section cards.
+    <section id="maturity" className="scroll-mt-20 bg-surface rounded-card border border-line shadow-card p-5">
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-base font-semibold text-ink">Maturity signals observed</h2>
         <div className="flex flex-col items-end gap-1 shrink-0">
