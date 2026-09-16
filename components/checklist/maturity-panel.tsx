@@ -2,7 +2,7 @@
 
 import { DIMENSIONS, type StatusMap } from "../../lib/checklist-data";
 import { maturityEvidence, radarInputs } from "../../lib/maturity";
-import { DownloadIcon, Marker } from "../ui/icon";
+import { Marker } from "../ui/icon";
 import { MaturityRadar } from "./maturity-radar";
 
 // The visible link between this tool and the Resilience Playbook.
@@ -27,32 +27,11 @@ export function MaturityPanel({ statuses }: { statuses: StatusMap }) {
     scored.length > 0 ? scored.reduce((n, e) => n + e.evidencedLevel, 0) / scored.length : 0;
 
   return (
-    // No anchor id: this is the whole of /maturity now, so there is nothing to
-    // jump past. The #maturity target moved to the summary card on the
-    // checklist page, which is where the navigations point.
-    <section className="bg-surface rounded-card border border-line shadow-card p-5">
-      <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="text-base font-semibold text-ink">Maturity signals observed</h2>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="text-xs text-ink-muted">Kasten Maturity Model · 7 dimensions</span>
-          {/* Served from public/ so a self-hosted, air-gapped deployment still
-              has the workbook to hand. Keep it in step with the canonical
-              version — see README. */}
-          <a
-            href="/kasten-maturity-self-assessment.xlsx"
-            download
-            className="text-xs font-semibold text-brand-700 hover:underline"
-          >
-            Download the workbook (.xlsx) <DownloadIcon />
-          </a>
-        </div>
-      </div>
-      <p className="text-[13px] text-ink-muted mb-5 max-w-3xl leading-relaxed">
-        What the verified items support, mapped onto the maturity model. This is evidence, not a score — the
-        companion self-assessment workbook remains authoritative, because half of each dimension is process and
-        ownership that no command can observe. Use the evidenced level as the starting point for the workbook&apos;s
-        Current Level, and the outstanding items as the work that would justify the next one.
-      </p>
+    // No card chrome and no title of its own: /maturity sets this as a report,
+    // so the page is the paper and its masthead carries the heading, the intro
+    // and the workbook link. Rendering a bordered card inside a sheet would put
+    // an edge around the middle of a document.
+    <section>
 
       {/* Chart and headline side by side from `lg`, stacked below it.
           The radar is the leader's view — position at a glance — and the list
