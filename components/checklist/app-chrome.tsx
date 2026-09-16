@@ -20,13 +20,14 @@ import {
 //
 // It moved out of the page because the actions in it are not the page's. Export
 // PDF renders the whole assessment including the diagram attached on
-// /diagnostics; Open and Save read and write the entire document; Ask searches
+// /cluster-capture; Open and Save read and write the entire document; Ask searches
 // the reference set regardless of what is on screen. Leaving them on the
 // checklist page would mean either duplicating them per route or making the
 // other two routes dead ends you can only leave with the back button.
 //
-// Scoped to the route group rather than the root layout deliberately:
-// /legacy carries its own header and footer, and would render two of each.
+// Scoped to the route group rather than the root layout deliberately: /design
+// is a token-comparison surface for maintainers, not part of the assessment, and
+// has no business carrying an Export PDF button or the assessment provider.
 
 // `match` decides which tab is lit. The four stage routes live under
 // /assessment/<slug>, so that tab is active for any of them rather than for one
@@ -229,11 +230,6 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             backend and no cluster access.
           </span>
           <span className="flex items-center gap-4">
-            {/* Temporary while the four-stage version is under review — remove
-                this link and app/legacy/ once it is signed off. */}
-            <Link href="/legacy" className="text-xs text-ink-faint hover:text-ink-soft hover:underline">
-              Previous version
-            </Link>
             <a
               href="https://docs.kasten.io"
               target="_blank"
