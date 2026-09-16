@@ -4,8 +4,14 @@ on:
   push:
     branches: [main]
     tags: ["v*.*.*"]
+  # No branch filter on pull_request, deliberately. With `branches: [main]` a PR
+  # opened against anything else — a stacked PR on another feature branch — ran
+  # no jobs at all. Not a failure: the checks list was simply empty, which reads
+  # as "nothing to report" rather than "nothing was verified", and a PR merged on
+  # that basis has never been built. Every publishing step below is already
+  # guarded by `github.event_name != 'pull_request'`, so widening this adds
+  # verification and cannot add a push.
   pull_request:
-    branches: [main]
 
 env:
   IMAGE_NAME: docker.io/jricho/k10-checklist
