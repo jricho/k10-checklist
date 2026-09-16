@@ -12,7 +12,7 @@ import { useAssessment, type AssessmentController } from "../../lib/checklist-st
 // `useAssessment` — so it lives only in React state.
 //
 // That is what forces the provider. Once the diagram uploader moved to
-// /diagnostics while Export PDF stayed in the header, component-local state
+// /cluster-capture while Export PDF stayed in the header, component-local state
 // would mean attaching a diagram on one route and exporting from another
 // silently dropped it, with no error and no clue. Hoisting both the controller
 // and the diagram above the routes is what makes the split safe.

@@ -24,7 +24,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `app/(assessment)/maturity/page.tsx` | Maturity model in full. Derived, nothing editable |
 | `app/(assessment)/cluster-capture/page.tsx` | Cluster captures and the architecture diagram |
 | `lib/routes.ts` | Stage slugs and route builders. Slugs ≠ stage ids, deliberately |
-| `app/legacy/page.tsx` | Frozen copy of the old flat checklist. Do not extend |
 
 The pages are deliberately thin. Checklist content changes belong in
 `lib/stages/`, command changes in `lib/commands.ts`, and PDF layout changes in
@@ -38,11 +37,14 @@ different strings on purpose: ids are persisted in every saved file and are as
 permanent as item ids, slugs are read by customers. `lib/routes.ts` owns the map;
 never derive one from the other.
 
+`/design` sits outside the group on purpose — it compares colour ramps and card
+treatments for maintainers and is not part of the assessment, so it carries
+neither the chrome nor the provider.
+
 The three routes are one assessment seen three ways, so state is hoisted into
 `AssessmentProvider` in the group layout and read with `useAssessmentContext()`.
 Do not call `useAssessment()` from a page: it owns a write-back effect, and a
-second instance means two writers for one storage key. `/legacy` and `/design`
-sit outside the group on purpose — `/legacy` carries its own header and footer.
+second instance means two writers for one storage key.
 
 ## Item ids are permanent
 
@@ -123,7 +125,7 @@ answers with it.
 
 Because it is not persisted, the diagram is the reason `AssessmentProvider`
 exists rather than each route calling `useAssessment()`: it is attached on
-`/diagnostics` and consumed by Export PDF in the shared header, so it has to
+`/cluster-capture` and consumed by Export PDF in the shared header, so it has to
 outlive a route change. It still does not outlive a reload.
 
 ## The reference search index
