@@ -1,5 +1,18 @@
 # k10-checklist — recommendations
 
+> **Historical — superseded on 16 September 2026.**
+>
+> This is the proposal that produced the four-stage restructure, written against
+> the repo at 13 commits. Its recommendations were adopted and shipped as v0.6.0.
+> It is kept as the record of why the app is shaped the way it is — the reasoning
+> is still the reasoning — but it is not a description of the code as it stands.
+>
+> Four releases have landed since: the maturity panel became reachable (v0.8.0),
+> then its own route (v0.9.0), the app gained an overview landing page with a
+> route per stage (v0.10.0), and the legacy checklist was removed (v0.11.0).
+> Anything below about file layout or line counts describes the state in
+> August 2026. See [AGENTS.md](../AGENTS.md) for the current layout.
+
 **Scope:** restructure `jricho/k10-checklist` around the customer journey from proof of concept to day-2 operating maturity; deepen the verification commands; tidy the code; and connect the tool to the Kasten Resilience Playbook and the maturity self-assessment workbook.
 
 **Inputs:** the repo at `main` (13 commits), *The Kasten Resilience Playbook*, *Kasten Maturity Self-Assessment.xlsx*, and *Your Path to Resilience with Veeam Kasten* (the 100-day roadmap).

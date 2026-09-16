@@ -69,7 +69,7 @@ const CAPTURES: {
   },
 ];
 
-export function DiagnosticsCard({
+export function ClusterCaptureCard({
   outputs,
   onChange,
 }: {

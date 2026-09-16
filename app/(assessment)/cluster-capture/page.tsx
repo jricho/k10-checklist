@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { DiagnosticsCard } from "../../../components/checklist/diagnostics-card";
+import { ClusterCaptureCard } from "../../../components/checklist/cluster-capture-card";
 import { useAssessmentContext } from "../../../components/checklist/assessment-provider";
 import { ExternalLinkIcon } from "../../../components/ui/icon";
 
@@ -59,7 +59,7 @@ export default function DiagnosticsPage() {
       </header>
 
       <div className="space-y-6">
-        <DiagnosticsCard outputs={outputs} onChange={setOutput} />
+        <ClusterCaptureCard outputs={outputs} onChange={setOutput} />
 
         <section className="bg-surface rounded-card border border-line shadow-card p-5">
           <div className="flex items-start justify-between gap-4 mb-1">

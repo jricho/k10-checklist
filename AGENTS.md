@@ -17,7 +17,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `lib/maturity.ts` | Checklist → maturity-model cross-reference |
 | `lib/checklist-state.ts` | `useAssessment()` — persistence, import/export |
 | `lib/export-pdf.ts` | `PdfWriter` and the PDF export |
-| `components/checklist/` | Stage nav, section card, maturity panel, diagnostics |
+| `components/checklist/` | Stage nav, section card, maturity panel, cluster capture |
 | `app/(assessment)/layout.tsx` | Provider + shared chrome for the assessment routes |
 | `app/(assessment)/page.tsx` | The overview. Doors, plus the engagement detail |
 | `app/(assessment)/assessment/[stage]/page.tsx` | One stage of the checklist, prerendered per slug |
@@ -56,6 +56,12 @@ attributes an old answer to a new question. Change labels and prose freely,
 `validateChecklistData()` runs on import in development and fails loudly in the
 console on duplicate ids, non-kebab-case ids, missing `why` or `evidence`, and
 out-of-range maturity levels. Check the console after editing content.
+
+The user-facing name of that route changed twice (Diagnostics → Cluster
+Capture); the `OutputKey` values it stores — `primer`, `cluster`, `policies`,
+`popeye` — never have and must not. They are persisted in saved assessments and
+carry the same permanence as item ids: rename one and every capture recorded
+against it is orphaned.
 
 ## Adding an item
 
