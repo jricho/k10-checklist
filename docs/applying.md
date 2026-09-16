@@ -1,5 +1,17 @@
 # Applying the changes to jricho/k10-checklist
 
+> **Historical — superseded on 16 September 2026.**
+>
+> This runbook describes applying the four-stage restructure that shipped as
+> v0.6.0. It was followed and it worked; it is kept as a record of that
+> migration, not as instructions to run today.
+>
+> The file paths below are out of date. `app/page.tsx` no longer exists: the
+> assessment lives under `app/(assessment)/`, the checklist is one route per
+> stage at `app/(assessment)/assessment/[stage]/`, and state is held by
+> `AssessmentProvider` rather than by the page. See [AGENTS.md](../AGENTS.md)
+> for the current layout.
+
 A step-by-step runbook. Steps 1–7 get it building and running locally; 8–9 get it committed and released; 10–11 are the two things to do before it goes in front of a customer.
 
 Assume `~/Downloads/k10-checklist` is where you saved the folder of new files, and `~/src` is where you keep repos. Adjust both.
